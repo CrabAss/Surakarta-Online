@@ -1,0 +1,111 @@
+.modal-body {
+    white-space: pre-line;
+}
+
+.loader {
+    position: relative;
+    margin: 0 auto;
+    width: 200px;
+}
+.loader:before {
+    content: '';
+    display: block;
+    padding-top: 100%;
+}
+
+.circular {
+    -webkit-animation: rotate 1.5s linear infinite;
+    animation: rotate 1.5s linear infinite;
+    height: 100%;
+    -webkit-transform-origin: center center;
+    transform-origin: center center;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+.path {
+    stroke-dasharray: 1, 400;
+    stroke-dashoffset: 0;
+    -webkit-animation: dash 1.3s ease-in-out infinite, color 5.2s ease-in-out infinite;
+    animation: dash 1.3s ease-in-out infinite, color 5.2s ease-in-out infinite;
+    stroke-linecap: round;
+}
+
+@-webkit-keyframes rotate {
+    100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes rotate {
+    100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+@-webkit-keyframes dash {
+    0% {
+        stroke-dasharray: 2, 400;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 178, 400;
+        stroke-dashoffset: -70px;
+    }
+    100% {
+        stroke-dasharray: 178, 400;
+        stroke-dashoffset: -248px;
+    }
+}
+@keyframes dash {
+    0% {
+        stroke-dasharray: 2, 400;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 178, 400;
+        stroke-dashoffset: -70px;
+    }
+    100% {
+        stroke-dasharray: 178, 400;
+        stroke-dashoffset: -248px;
+    }
+}
+@-webkit-keyframes color {
+    100%,
+    0% {
+        stroke: #d62d20;
+    }
+    40% {
+        stroke: #0057e7;
+    }
+    66% {
+        stroke: #008744;
+    }
+    80%,
+    90% {
+        stroke: #ffa700;
+    }
+}
+@keyframes color {
+    100%,
+    0% {
+        stroke: #d62d20;
+    }
+    40% {
+        stroke: #0057e7;
+    }
+    66% {
+        stroke: #008744;
+    }
+    80%,
+    90% {
+        stroke: #ffa700;
+    }
+}

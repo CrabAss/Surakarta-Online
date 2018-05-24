@@ -1,0 +1,18 @@
+canvas {
+    display: block;
+    width: 528px;
+    height: 528px;
+    margin: 0 auto;
+}
+
+.badge {
+    line-height: 1.2;
+}
+
+#alert {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    border-radius: 0;
+    z-index:9999;
+}

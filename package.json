@@ -1,0 +1,31 @@
+{
+  "name": "COMP3421-A2-Q1",
+  "version": "0.0.0",
+  "author": "ZHANG Hanyu (16097165D)",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "bcrypt": "^2.0.0",
+    "body-parser": "~1.18.2",
+    "connect-mongo": "^2.0.1",
+    "cookie-parser": "~1.4.3",
+    "debug": "^3.1.0",
+    "express": "^4.16.3",
+    "express-recaptcha": "^4.0.2",
+    "express-session": "^1.15.6",
+    "express-socket.io-session": "^1.3.3",
+    "flag-icon-css": "^3.0.0",
+    "geoip-lite": "^1.2.1",
+    "geojson": "^0.5.0",
+    "mongodb": "^3.0.6",
+    "mongoose": "^5.0.14",
+    "morgan": "~1.9.0",
+    "npm": "^5.7.1",
+    "pug": "^2.0.1",
+    "serve-favicon": "^2.5.0",
+    "shortid": "^2.2.8",
+    "socket.io": "^2.1.0"
+  }
+}

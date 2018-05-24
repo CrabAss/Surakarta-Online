@@ -1,0 +1,30 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
+    title Sign In - Surakarta
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha256-NJWeQ+bs82iAeoT5Ktmqbi3NXwxcHlfaVejzJI2dklU=" crossorigin="anonymous")
+    link(rel='stylesheet' href='/stylesheets/signup.css')
+    link(rel='stylesheet' href='/stylesheets/pace-flash.css')
+    script(src="https://www.google.com/recaptcha/api.js" async defer)
+    script(src='/javascripts/pace.min.js')
+    script.
+      function onSubmit(token) {
+        document.getElementById("signin-form").submit();
+      }
+  body
+    .user-body
+      h1 Sign In
+      if error === true
+        .alert.alert-danger(role="alert")=errorMsg
+      form#signin-form(method='post')
+        .form-group
+          input.form-control(name='username' placeholder='Username' required)
+        .form-group
+          input.form-control(name='password' type='password' placeholder='Password' required)
+        button.btn.btn-primary.btn-block.g-recaptcha(data-sitekey=reCaptchaKey data-callback='onSubmit') Sign In
+      .alert.alert-secondary.mt-3(role="alert")
+        | Do not have an account?&nbsp;
+        a.alert-link(href='/u/signup') Sign up
+        |  here.

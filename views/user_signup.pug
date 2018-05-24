@@ -1,0 +1,67 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
+    title Sign Up - Surakarta
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha256-NJWeQ+bs82iAeoT5Ktmqbi3NXwxcHlfaVejzJI2dklU=" crossorigin="anonymous")
+    link(rel='stylesheet' href='/stylesheets/signup.css')
+    link(rel='stylesheet' href='/stylesheets/pace-flash.css')
+    script(src="https://www.google.com/recaptcha/api.js" async defer)
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha256-C8oQVJ33cKtnkARnmeWp6SDChkU+u7KvsNMFUzkkUzk=" crossorigin="anonymous")
+    script(src='/javascripts/signup.js')
+    script(src='/javascripts/pace.min.js')
+  body
+    .user-body
+      h1 Sign Up
+      form#signup-form
+        .form-row
+          #username-container.form-group.col
+            label(for='username') Username
+            input#username.form-control(name='username' onblur="valUsername()")
+            .invalid-feedback
+            .valid-feedback Looks good!
+          #password-container.form-group.col
+            label(for='password') Password
+            input#password.form-control(name='password' type='password' onblur="valPassword()")
+            .invalid-feedback At least 6 characters are required.
+            .valid-feedback Looks good!
+        .form-row
+          #birthyear-container.form-group.col
+            label(for='birthyear') Year of Birth
+            input#birthyear.form-control(name='birthyear' onblur="valBirthYear()")
+            .invalid-feedback
+            .valid-feedback Looks good!
+          #gender-container.form-group.col-sm-auto
+            label Gender
+            .btn-group.btn-group-toggle(data-toggle="buttons" style='display: block')
+              label.btn.btn-outline-secondary(for='gd_female')
+                input#gd_female(name='gender' type='radio' value='0')
+                | Female
+              label.btn.btn-outline-secondary(for='gd_male')
+                input#gd_male(name='gender' type='radio' value='1')
+                | Male
+              label.btn.btn-outline-secondary(for='gd_other')
+                input#gd_other(name='gender' type='radio' value='2')
+                | Other
+            .invalid-feedback Please specify your gender.
+            .valid-feedback Looks good!
+        .form-row
+          .form-group.col
+            label(for='country') Country/Region
+            select#country.form-control.custom-select(name='country' autocomplete='off')
+              each item in countryList
+                option(value=item.abbr selected=item.abbr === countryDefault)=item.name
+        #recaptcha.g-recaptcha(data-sitekey=reCaptchaKey data-callback="onSubmit" data-size="invisible")
+        button#submitBtn.btn.btn-primary.btn-block(type='button' disabled) Sign Up
+        .alert.alert-secondary.mt-3(role="alert")
+          | Already have an account?&nbsp;
+          a.alert-link(href='/u/signin') Sign in
+          |  here.
+      .alert.alert-success(role="alert" style="display: none")
+        h4.alert-heading Well done!
+        p.mb-0 You have successfully signed up! You may&nbsp;
+          a(href='/u/signin' class="alert-link") sign in
+          |  now.

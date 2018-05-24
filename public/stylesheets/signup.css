@@ -1,0 +1,28 @@
+.main-logo {
+    background: url('/images/logo.svg') no-repeat center;
+    width: 256px;
+    height: 256px;
+    background-size: contain;
+}
+
+h1 {
+    margin-top: 4rem;
+    margin-bottom: 2rem;
+}
+
+.user-body {
+    width: 100%;
+    max-width: 520px;
+    padding: 20px;
+    margin: 0 auto;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}

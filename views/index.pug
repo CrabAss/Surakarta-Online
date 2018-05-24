@@ -1,0 +1,25 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
+    title Surakarta
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha256-NJWeQ+bs82iAeoT5Ktmqbi3NXwxcHlfaVejzJI2dklU=" crossorigin="anonymous")
+    link(rel='stylesheet' href='/stylesheets/signup.css')
+    link(rel='stylesheet' href='/stylesheets/pace-flash.css')
+    script(src='/javascripts/pace.min.js')
+  body
+    .user-body.d-flex.flex-column.justify-content-center
+      .main-logo.mx-auto.mt-5.mb-1
+      if username
+        h1.text-center.my-4 Welcome back, #{username}!
+        if gameID
+          a.btn.btn-primary.btn-lg.my-2(href='/g/'+gameID) Resume your game
+        else
+          a.btn.btn-primary.btn-lg.my-2(href='/g/hall') Start a new game
+        a.btn.btn-primary.my-2(href='/stat/map') View the Player Map
+        a.btn.btn-secondary.my-2(href='/u/signout') Sign Out
+      else
+        h1.text-center.my-4 Welcome to Surakarta!
+        a.btn.btn-primary.btn-lg.my-2(href='/u/signup') Sign Up
+        a.btn.btn-secondary.my-2(href='/u/signin') Sign In

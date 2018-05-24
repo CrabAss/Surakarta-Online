@@ -1,0 +1,14 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
+    title Player Map - Surakarta
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha256-NJWeQ+bs82iAeoT5Ktmqbi3NXwxcHlfaVejzJI2dklU=" crossorigin="anonymous")
+    link(rel='stylesheet' href='/stylesheets/stat_map.css')
+    link(rel='stylesheet' href='/stylesheets/pace-flash.css')
+    script(src='/javascripts/stat_map.js')
+    script(src='/javascripts/pace.min.js')
+  body
+    #map_canvas
+    script(async defer src='https://maps.googleapis.com/maps/api/js?key=AIzaSyBq7LwUHMokVfO1ck5ekYAOfdOG2ltQbPo&callback=initMap')

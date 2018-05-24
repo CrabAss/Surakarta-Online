@@ -1,0 +1,33 @@
+doctype html
+html.h-100
+  head
+    meta(charset='utf-8')
+    meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
+    title Matchmaking Hall - Surakarta
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha256-NJWeQ+bs82iAeoT5Ktmqbi3NXwxcHlfaVejzJI2dklU=" crossorigin="anonymous")
+    link(rel='stylesheet' href='/stylesheets/game_hall.css')
+    link(rel='stylesheet' href='/stylesheets/pace-flash.css')
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous")
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.0/socket.io.js', integrity='sha256-Thm9kMI2BQKxVnCWipQIGeb8QVl2lohO+WWWfCiF8b0=', crossorigin='anonymous')
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.1/umd/popper.min.js" integrity="sha256-AoNQZpaRmemSTxMy9xcqXX5VLwI6IMPYugO7bFHOW+U=" crossorigin="anonymous")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha256-C8oQVJ33cKtnkARnmeWp6SDChkU+u7KvsNMFUzkkUzk=" crossorigin="anonymous")
+    script(src='/javascripts/game_hall.js')
+  body.d-flex.h-100.align-items-center
+    .container
+      #alertModal.modal.fade(data-keyboard="false" data-backdrop="static" tabindex='-1' role='dialog' aria-labelledby='alertModalTitle' aria-hidden='true')
+        .modal-dialog.modal-dialog-centered(role='document')
+          .modal-content
+            .modal-header
+              h5#alertModalTitle.modal-title Hello!
+            .modal-body
+              | Before playing Surakarta, please sign in first!
+            .modal-footer
+              a.btn.btn-primary(href='/u/signin') Proceed to Sign In
+      //h1 Matchmaking Hall
+      .loader
+        svg.circular
+          circle.path(cx='100', cy='100', r='40', fill='none', stroke-width='5', stroke-miterlimit='10')
+      h4.text-center Waiting for another player...
+      .d-flex.flex-row.align-items-center.justify-content-center.pb-5
+        button#copyBtn.btn.btn-outline-primary.btn-sm(type='button') Copy
+        .lead.text-center.ml-2 this link to invite your friend!
