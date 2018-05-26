@@ -16,11 +16,9 @@ html
     script(src='/javascripts/pace.min.js')
     script(src='/javascripts/game_canvas.js')
   body
-    #alert.alert.alert-danger.alert-dismissible.fade(role='alert')
-      strong#strongMsg Holy guacamole!&nbsp;
-      span#detailMsg You should check in on some of those fields below.
-      button.close(type='button', data-dismiss='alert', aria-label='Close')
-        span(aria-hidden='true') ×
+    #alert.alert.alert-danger.fade(role='alert')
+      strong#strongMsg
+      span#detailMsg
     .container
       .row.mt-5
         .col
