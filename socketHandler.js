@@ -149,10 +149,13 @@ module.exports = function(io, app, next) {
           }
           socket.to(msg.gameID).emit('update', {gameBoard: gameBoard});
           if (winner) {
+            User.updateGameRecord(currentGame.gameID, currentGame.winner, currentGame.loser, function (err) {
+              if (err) return callback(err);
+            });
             socket.to(msg.gameID).emit('end', {winner: winner});
             socket.emit('end', {winner: winner});
             console.log('END!!! Winner:', winner);
-            game.connected[socket.id].disconnect(true);
+            // game.connected[socket.id].disconnect(true);
           }
         });
       });
@@ -163,11 +166,15 @@ module.exports = function(io, app, next) {
       // SEND BACK: END
       Game.findOne({gameID: msg.gameID}, function (err, currentGame) {
         currentGame.surrenderGame(socket.handshake.session.userId, function (err, winner) {
+          User.updateGameRecord(currentGame.gameID, currentGame.winner, currentGame.loser, function (err) {
+            if (err) return callback(err);
+          });
           socket.to(msg.gameID).emit('end', {winner: winner});
           socket.emit('end', {winner: winner});
           console.log('Surrendered!!! Winner:', winner);
           game.connected[socket.id].disconnect(true);
         });
+
       });
     });
 

@@ -6,10 +6,7 @@ function initMap() {
     mapTypeId: 'terrain'
   });
 
-  // Create a <script> tag and set the USGS URL as the source.
   let script = document.createElement('script');
-  // This example uses a local copy of the GeoJSON stored at
-  // http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojsonp
   script.src = '/stat/geojsonp';
   document.getElementsByTagName('head')[0].appendChild(script);
 }
@@ -27,7 +24,7 @@ window.geo_callback = function(results) {
     });
     marker.info = new google.maps.InfoWindow({
       content: '<b>User: </b>' + results.features[i].properties.name
-      + '<br><b>Wins: </b>' + results.features[i].properties.winCount
+      + '<br><b>Wins: </b>' + results.features[i].properties.countWin
     });
 
     google.maps.event.addListener(marker, 'click', function() {

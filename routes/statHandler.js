@@ -30,29 +30,22 @@ router.get('/map', function(req, res, next) {
 router.get('/geojsonp', function(req, res, next) {
   ifSignedIn(req, next, function () {
     User.find({}, function (err, users) {
-      function pushData (userArray, mapArray) { // recursive due to async method user.getWin()
-        if (!mapArray) mapArray = [];
-        if (userArray.length === 0) {
-          res.setHeader('content-type', 'text/javascript');
-          res.send('geo_callback(' + JSON.stringify(geoJson.parse(mapArray, {Point: ['lat', 'lng']})) + ')');
-        } else {
-          let user = userArray.pop();
-          user.getWin(function (winCount) {
-            mapArray.push({
-              name: user.username,
-              winCount: winCount,
-              lat: user.location[0],
-              lng: user.location[1]
-            });
-            pushData(userArray, mapArray);
-          })
-        }
-      }
       if (err) return next(err);
-      pushData(users);
+      let mapArray = [];
+      users.forEach(function (user) {
+        mapArray.push({
+          name: user.username,
+          countWin: user.countWin,
+          lat: user.location[0],
+          lng: user.location[1]
+        });
+      });
+      res.setHeader('content-type', 'application/json-p');
+      res.send('geo_callback(' + JSON.stringify(geoJson.parse(mapArray, {Point: ['lat', 'lng']})) + ')');
     });
   }, function () {
-    res.send({status: 403, message: 'forbidden'});
+    res.setHeader('content-type', 'application/json-p');
+    res.send('geo_callback()');
   })
 });
 

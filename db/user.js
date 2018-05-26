@@ -26,12 +26,26 @@ let UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  location: []
+  location: [],
+  gameWin: [String],
+  gameLose: [String]
 });
 
 
 UserSchema.virtual('age').get(function () {
   return (new Date()).getFullYear() - this.birthyear;
+});
+
+UserSchema.virtual('countWin').get(function () {
+  return this.gameWin.length;
+});
+
+UserSchema.virtual('countLose').get(function () {
+  return this.gameLose.length;
+});
+
+UserSchema.virtual('rateWin').get(function () {
+  return this.gameWin.length + this.gameLose.length === 0 ? 0 : this.gameWin.length / (this.gameWin.length + this.gameLose.length);
 });
 
 UserSchema.methods.getGameInProgress = function (callback) {
@@ -46,7 +60,7 @@ UserSchema.methods.getGameInProgress = function (callback) {
   });
 };
 
-UserSchema.methods.getWin = function (callback) {
+/*UserSchema.methods.getWin = function (callback) {
   Game.count({
     gameStatus: { $in: ['Surrendered', 'Finished'] },
     winner: this._id
@@ -75,6 +89,33 @@ UserSchema.methods.getWinRate = function(callback) {
       else return callback(winCount / (winCount + loseCount));
     })
   })
+};*/
+
+UserSchema.statics.updateGameRecord = function (gameID, winner, loser, callback) {
+  this.findById(winner, function (err, user) {
+    if (!user) {
+      let err = new Error("User not found.");
+      err.status = 404;
+      console.log(err);
+      return callback(err);
+    }
+    user.gameWin.push(gameID);
+    user.save(function (err) {
+      if (err) return callback(err);
+    });
+  });
+  this.findById(loser, function (err, user) {
+    if (!user) {
+      let err = new Error("User not found.");
+      err.status = 404;
+      console.log(err);
+      return callback(err);
+    }
+    user.gameLose.push(gameID);
+    user.save(function (err) {
+      if (err) return callback(err);
+    });
+  });
 };
 
 //authenticate input against database
@@ -94,7 +135,6 @@ UserSchema.statics.authenticate = function (username, password, callback) {
           if (result === true) {
             return callback(null, user);
           } else {
-            // console.log('bcrypt:', err);
             return callback(err);
           }
         })
@@ -126,7 +166,7 @@ UserSchema.statics.newUser = function (username, password, birthyear, gender, co
         if (!err)
           return callback(null, null, true);
         else {
-          if (err.message.indexOf('E11000') > -1)
+          if (err.code === 11000)
             return callback(null, "username_unavailable", false);
           else
             return callback(err, null, false);

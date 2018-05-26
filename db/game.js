@@ -1,5 +1,4 @@
 let mongoose = require('mongoose');
-let User = require('./user');
 let shortId = require('shortid');
 const initBoard = 'BBBBBBBBBBBB............WWWWWWWWWWWW';
 
@@ -31,11 +30,13 @@ let GameSchema = new mongoose.Schema({
   gameStatus: {
     type: String,
     required: true,
-    enum: ['InProgress', 'Finished', 'Surrendered']
+    enum: ['InProgress', 'Finished', 'Surrendered'],
+    default: 'InProgress'
   },
   startTime: {
     type: Date,
-    required: true
+    required: true,
+    default: new Date()
   },
   playerB: {
     type: mongoose.Schema.Types.ObjectId,
@@ -55,14 +56,21 @@ let GameSchema = new mongoose.Schema({
   curBoard: { /* black --- white */
     type: String,
     required: true,
-    maxlength: 37
+    maxlength: 37,
+    default: initBoard
   },
   totalSteps: {
     type: Number,
-    required: true
+    required: true,
+    default: 0
   },
   steps: [GameStepSchema]
 });
+
+GameSchema.virtual('loser').get(function () {
+  return this.winner ? (this.winner === this.playerB ? this.playerW : this.playerB) : undefined;
+});
+
 
 /* Sample of curBoard:
 *
@@ -101,10 +109,12 @@ const attackRoute =[
 ];
 
 function reverse(s){
+  // reverse a string
   return s.split("").reverse().join("");
 }
 
 function getAllIndexes(arr, val) {
+  // get all indexes of a certain value in a given array
   let indexes = [], i = -1;
   while ((i = arr.indexOf(val, i + 1)) !== -1){
     indexes.push(i);
@@ -113,10 +123,11 @@ function getAllIndexes(arr, val) {
 }
 
 GameSchema.methods.moveOnBoard = function (oldPos, newPos, timeUsed, callback) {
+  // move the checker on the board
   let boardArray = this.curBoard.split("");
   boardArray[newPos] = this.getCurrentPlayer();
   boardArray[oldPos] = '.';
-  this.curBoard = boardArray.join('');
+  this.curBoard = boardArray.join("");
 
   this.totalSteps++;
   this.steps.push({
@@ -125,6 +136,8 @@ GameSchema.methods.moveOnBoard = function (oldPos, newPos, timeUsed, callback) {
     checkerNewPos: newPos,
     timeUsed: Number(timeUsed)
   });
+
+  // and check if there is a winner
 
   let gameWinner;
 
@@ -194,22 +207,23 @@ GameSchema.methods.getAttackPos = function (curPos) {
       });
     }
   }
-  return result.filter(function (item, pos) {
+  return result.filter(function (item, pos) { // remove duplicate elements
     return result.indexOf(item) === pos;
   });
 };
 
 GameSchema.methods.moveStep = function (oldPos, newPos, timeUsed, callback) {
+  if (this.gameStatus !== "InProgress")
+    return errRejected();
+
   let gameWinner;
   if (this.getCurrentPlayer() === 'B') {
     oldPos = 35 - oldPos;
     newPos = 35 - newPos;
   }
-  if (this.curBoard.charAt(oldPos) !== this.getCurrentPlayer()) { // waiting player hacks
-    let err = new Error('Move is rejected. ');
-    err.status = 406;
-    return callback(err);
-  }
+  if (this.curBoard.charAt(oldPos) !== this.getCurrentPlayer()) // waiting player hacks
+    return errRejected();
+
   let movePos = this.getMovePos(oldPos);
   let attackPos = this.getAttackPos(oldPos);
   if (movePos.includes(newPos) || attackPos.includes(newPos)) {
@@ -220,11 +234,14 @@ GameSchema.methods.moveStep = function (oldPos, newPos, timeUsed, callback) {
       }
     });
     return callback(null, this.getCurrentPlayer() === 'B' ? reverse(this.curBoard) : this.curBoard, gameWinner);
-  } else {
+  } else return errRejected();
+
+  function errRejected() {
     let err = new Error('Move is rejected. ');
     err.status = 406;
     return callback(err);
   }
+
 };
 
 GameSchema.statics.newGame = function (users, callback) {
@@ -237,14 +254,10 @@ GameSchema.statics.newGame = function (users, callback) {
   }
   playerFirst = Math.random() * 2 >= 1 ? playerB : playerW;
   const gameInfo = {
-    gameID: gameID,
-    gameStatus: 'InProgress',
-    startTime: new Date(),
+    gameID: shortId.generate(),
     playerB: playerB,
     playerW: playerW,
-    playerFirst: playerFirst,
-    curBoard: initBoard,
-    totalSteps: 0
+    playerFirst: playerFirst
   };
   // console.log(gameInfo);
   this.create(gameInfo, function (err, game) {
@@ -263,7 +276,7 @@ GameSchema.methods.surrenderGame = function (sender, callback) {
     else {
       return callback(null, updatedGame.winner === updatedGame.playerB ? 'B' : 'W')
     }
-  })
+  });
 };
 
 GameSchema.statics.getInitData = function (gameID, userID, callback) {
