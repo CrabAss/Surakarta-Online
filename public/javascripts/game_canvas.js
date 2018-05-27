@@ -115,6 +115,7 @@ $(document).ready(function() {
     return indexes;
   }
 
+  let checkerboardLayer = new paper.Layer();
   drawCheckerboard();
 
   function drawCheckerboard() {
@@ -256,7 +257,6 @@ $(document).ready(function() {
 
   checkerLayer.onMouseDown = function(event) {
 
-    // console.log('MouseDown');
     if (!playable) {
       showAlert('Be patient! ', 'You have to wait until your opponent moves the checker. ');
       return;
@@ -284,7 +284,7 @@ $(document).ready(function() {
       showAlert('Sorry, ', 'this checker has nowhere to go according to the rule of Surakarta. ');
       return;
     }
-
+    setCursor("grabbing");
     hintLayer.activate();
     movePos.forEach(function (element) {
       hintMoveDef.place(element)
@@ -297,6 +297,26 @@ $(document).ready(function() {
 
   checkerLayer.onMouseDrag = function(event) {
     if (hitItem) hitItem.position = event.point.subtract(mouseOffset);
+  };
+
+  function setCursor(param) {
+    if (typeof param === "string") {
+      document.body.style.cursor = param;
+    } else {
+      let hitResult = checkerLayer.hitTest(param.point, hitOptions);
+      document.body.style.cursor = !hitResult ? "default" : hitResult.item.checkerPlayer !== ownColor ? "not-allowed" : "grab";
+    }
+  }
+
+  checkerLayer.onMouseEnter = function(event) {
+    if (!hitItem) {
+      if (playable) setCursor(event);
+      else setCursor("not-allowed");
+    }
+  };
+
+  checkerLayer.onMouseLeave = function(event) {
+    if (!hitItem) setCursor("default");
   };
 
   checkerLayer.onMouseUp = function (event) {
@@ -339,10 +359,11 @@ $(document).ready(function() {
         $('.waiting-badge.opponent').addClass('d-none');
         $('.moving-badge.opponent').removeClass('d-none');
         $('.waiting-badge.own').removeClass('d-none');
+        setCursor("not-allowed");
       }
       else {
         hitItem.position = hitOriginalPos;
-        // alert mt-3 to user: move not accepted
+        setCursor(event);
       }
 
       hintLayer.removeChildren();
