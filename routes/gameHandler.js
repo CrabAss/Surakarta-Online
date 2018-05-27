@@ -39,8 +39,8 @@ router.get('/:gameID', function (req, res, next) {
   Game.findOne({
     gameID: req.params.gameID,
     $or: [
-      { playerB: req.session.userId },
-      { playerW: req.session.userId }
+      { "playerB.userID": req.session.userId },
+      { "playerW.userID": req.session.userId }
     ]}, function (err, game) {
     if (!game) res.redirect('/g/hall');
     else res.render("game_play");

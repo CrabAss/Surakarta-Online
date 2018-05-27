@@ -136,19 +136,8 @@ router.post('/signup/validate/username', function(req, res, next) {
 
 
 // Profile page
-router.get('/', function (req, res, next) {
-/*  User.findById(req.session.userId).exec(function (error, user) {
-    if (error) {
-      return next(error);
-    } else {
-      if (user !== null) {
-        // return res.render('user_profile', {title: 'User Profile', username: user.username});
-      } else {
-        return res.redirect('/u/signin');
-      }
-    }
-  });*/
-  return res.redirect('/');
+router.get('/@:username', function (req, res, next) {
+  res.send(req.params.username);
 });
 
 router.get('/settings', function (req, res, next) {

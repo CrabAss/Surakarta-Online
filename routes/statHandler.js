@@ -33,12 +33,13 @@ router.get('/geojsonp', function(req, res, next) {
       if (err) return next(err);
       let mapArray = [];
       users.forEach(function (user) {
-        mapArray.push({
-          name: user.username,
-          countWin: user.countWin,
-          lat: user.location[0],
-          lng: user.location[1]
-        });
+        if (user.location)
+          mapArray.push({
+            name: user.username,
+            countWin: user.countWin,
+            lat: user.location[0],
+            lng: user.location[1]
+          });
       });
       res.setHeader('content-type', 'application/json-p');
       res.send('geo_callback(' + JSON.stringify(geoJson.parse(mapArray, {Point: ['lat', 'lng']})) + ')');

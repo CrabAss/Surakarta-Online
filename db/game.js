@@ -2,7 +2,7 @@ let mongoose = require('mongoose');
 let shortId = require('shortid');
 const initBoard = 'BBBBBBBBBBBB............WWWWWWWWWWWW';
 
-let GameStepSchema = new mongoose.Schema({
+let GameMoveSchema = new mongoose.Schema({
   seq: {
     type: Number,
     required: true
@@ -21,13 +21,35 @@ let GameStepSchema = new mongoose.Schema({
   }
 });
 
+let GamePlayerSchema = new mongoose.Schema({
+  userID: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true
+  },
+  isFirst: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  isWinner: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  isActive: {
+    type: Boolean,
+    required: true,
+    default: false
+  }
+});
+
 let GameSchema = new mongoose.Schema({
   gameID: {
     type: String,
     unique: true,
     required: true
   },
-  gameStatus: {
+  status: {
     type: String,
     required: true,
     enum: ['InProgress', 'Finished', 'Surrendered'],
@@ -39,40 +61,44 @@ let GameSchema = new mongoose.Schema({
     default: new Date()
   },
   playerB: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: GamePlayerSchema,
     required: true
   },
   playerW: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: GamePlayerSchema,
     required: true
   },
-  playerFirst: {
+  /*playerFirst: {
     type: mongoose.Schema.Types.ObjectId,
     required: true
   },
   winner: {
     type: mongoose.Schema.Types.ObjectId
-  },
-  curBoard: { /* black --- white */
+  },*/
+  currentBoard: { /* black --- white */
     type: String,
     required: true,
     maxlength: 37,
     default: initBoard
   },
-  totalSteps: {
+  totalMoves: {
     type: Number,
     required: true,
     default: 0
   },
-  steps: [GameStepSchema]
+  moves: [GameMoveSchema]
+});
+
+GameSchema.virtual('winner').get(function () {
+  return this.status !== "InProgress" ? (this.playerB.isWinner ? this.playerB.userID : this.playerW.userID) : undefined;
 });
 
 GameSchema.virtual('loser').get(function () {
-  return this.winner ? (this.winner === this.playerB ? this.playerW : this.playerB) : undefined;
+  return this.status !== "InProgress" ? (!this.playerB.isWinner ? this.playerB.userID : this.playerW.userID) : undefined;
 });
 
 
-/* Sample of curBoard:
+/* Sample of currentBoard:
 *
 *** Before: (white player on default)
 *
@@ -89,7 +115,7 @@ GameSchema.virtual('loser').get(function () {
 * BB.BB.BW..BBW..B....B..WWWWB....WWWW
 *
 *** If black player: translate
-*     curBoard: reverse the whole string
+*     currentBoard: reverse the whole string
 *     position: 35 - x
 *
 *** All translation work is done on server (or THIS FILE)
@@ -124,14 +150,14 @@ function getAllIndexes(arr, val) {
 
 GameSchema.methods.moveOnBoard = function (oldPos, newPos, timeUsed, callback) {
   // move the checker on the board
-  let boardArray = this.curBoard.split("");
+  let boardArray = this.currentBoard.split("");
   boardArray[newPos] = this.getCurrentPlayer();
   boardArray[oldPos] = '.';
-  this.curBoard = boardArray.join("");
+  this.currentBoard = boardArray.join("");
 
-  this.totalSteps++;
-  this.steps.push({
-    seq: this.totalSteps,
+  this.totalMoves++;
+  this.moves.push({
+    seq: this.totalMoves,
     checkerOldPos: oldPos,
     checkerNewPos: newPos,
     timeUsed: Number(timeUsed)
@@ -143,13 +169,13 @@ GameSchema.methods.moveOnBoard = function (oldPos, newPos, timeUsed, callback) {
 
   if (!boardArray.includes('B')) {
     // playerW wins
-    this.gameStatus = 'Finished';
-    this.winner = this.playerW;
+    this.status = 'Finished';
+    this.playerW.isWinner = true;
     gameWinner = 'W';
   } else if (!boardArray.includes('W')) {
     // playerB wins
-    this.gameStatus = 'Finished';
-    this.winner = this.playerB;
+    this.status = 'Finished';
+    this.playerB.isWinner = true;
     gameWinner = 'B';
   }
   this.save(function (err) {
@@ -159,11 +185,11 @@ GameSchema.methods.moveOnBoard = function (oldPos, newPos, timeUsed, callback) {
 };
 
 GameSchema.methods.getCurrentPlayer = function () {
-  return this.totalSteps % 2 === 0 ? (this.playerFirst === this.playerB ? 'B' : 'W') : (this.playerFirst === this.playerB ? 'W' : 'B');
+  return this.totalMoves % 2 === 0 ? (this.playerB.isFirst ? 'B' : 'W') : (this.playerB.isFirst ? 'W' : 'B');
 };
 
 GameSchema.methods.getCurrentPlayerID = function () {
-  return this.getCurrentPlayer() === 'B' ? this.playerB : this.playerW;
+  return this.getCurrentPlayer() === 'B' ? this.playerB.userID : this.playerW.userID;
 };
 
 GameSchema.methods.getMovePos = function (curPos) {
@@ -171,7 +197,7 @@ GameSchema.methods.getMovePos = function (curPos) {
   let result = [];
   for (let i = x - 1; i < x + 2; i++) {
     for (let j = y - 1; j < y + 2; j++) {
-      if (!(i < 0 || i > 5 || j < 0 || j > 5 || (i === x && j === y) || this.curBoard.charAt(i + j * 6) !== '.')) {
+      if (!(i < 0 || i > 5 || j < 0 || j > 5 || (i === x && j === y) || this.currentBoard.charAt(i + j * 6) !== '.')) {
         result.push(i + j * 6);
       }
     }
@@ -181,7 +207,7 @@ GameSchema.methods.getMovePos = function (curPos) {
 
 GameSchema.methods.getAttackPos = function (curPos) {
   const opponent = this.getCurrentPlayer() === 'B' ? 'W' : 'B';
-  const curBoard = this.curBoard;
+  const currentBoard = this.currentBoard;
   // console.log('opponent:', opponent);
   let result = [];
   for (let routeIndex = 0; routeIndex < 2; routeIndex++) {  // two routes
@@ -195,7 +221,7 @@ GameSchema.methods.getAttackPos = function (curPos) {
             const routePosIndex = (routeStart + direction * i + attackRoute[routeIndex].length) % attackRoute[routeIndex].length;
             if (attackRoute[routeIndex][routePosIndex] !== -1) {
               // if the position have checker and it belongs to opponent and turned: push to result
-              const foundChecker = curBoard.charAt(attackRoute[routeIndex][routePosIndex]);
+              const foundChecker = currentBoard.charAt(attackRoute[routeIndex][routePosIndex]);
               if (foundChecker !== '.' && attackRoute[routeIndex][routePosIndex] !== curPos) {
                 if (foundChecker === opponent && turned)
                   result.push(attackRoute[routeIndex][routePosIndex]);
@@ -213,7 +239,7 @@ GameSchema.methods.getAttackPos = function (curPos) {
 };
 
 GameSchema.methods.moveStep = function (oldPos, newPos, timeUsed, callback) {
-  if (this.gameStatus !== "InProgress")
+  if (this.status !== "InProgress")
     return errRejected();
 
   let gameWinner;
@@ -221,7 +247,7 @@ GameSchema.methods.moveStep = function (oldPos, newPos, timeUsed, callback) {
     oldPos = 35 - oldPos;
     newPos = 35 - newPos;
   }
-  if (this.curBoard.charAt(oldPos) !== this.getCurrentPlayer()) // waiting player hacks
+  if (this.currentBoard.charAt(oldPos) !== this.getCurrentPlayer()) // waiting player hacks
     return errRejected();
 
   let movePos = this.getMovePos(oldPos);
@@ -233,12 +259,12 @@ GameSchema.methods.moveStep = function (oldPos, newPos, timeUsed, callback) {
         gameWinner = winner;
       }
     });
-    return callback(null, this.getCurrentPlayer() === 'B' ? reverse(this.curBoard) : this.curBoard, gameWinner);
+    return callback(null, this.getCurrentPlayer() === 'B' ? reverse(this.currentBoard) : this.currentBoard, gameWinner);
   } else return errRejected();
 
   function errRejected() {
     let err = new Error('Move is rejected. ');
-    err.status = 406;
+    err.status = 400;
     return callback(err);
   }
 
@@ -255,9 +281,14 @@ GameSchema.statics.newGame = function (users, callback) {
   playerFirst = Math.random() * 2 >= 1 ? playerB : playerW;
   const gameInfo = {
     gameID: shortId.generate(),
-    playerB: playerB,
-    playerW: playerW,
-    playerFirst: playerFirst
+    playerB: {
+      userID: playerB,
+      isFirst: playerB === playerFirst
+    },
+    playerW: {
+      userID: playerW,
+      isFirst: playerW === playerFirst
+    }
   };
   // console.log(gameInfo);
   this.create(gameInfo, function (err, game) {
@@ -269,12 +300,16 @@ GameSchema.statics.newGame = function (users, callback) {
 };
 
 GameSchema.methods.surrenderGame = function (sender, callback) {
-  this.gameStatus = 'Surrendered';
-  this.winner = sender === this.playerB.toString() ? this.playerW : this.playerB;
+  this.status = 'Surrendered';
+  if (sender === this.playerB.userID.toString()) {
+    this.playerW.isWinner = true;
+  } else {
+    this.playerB.isWinner = true;
+  }
   this.save(function (err, updatedGame) {
     if (err) return callback(err);
     else {
-      return callback(null, updatedGame.winner === updatedGame.playerB ? 'B' : 'W')
+      return callback(null, updatedGame.playerB.isWinner ? 'B' : 'W')
     }
   });
 };
@@ -283,8 +318,8 @@ GameSchema.statics.getInitData = function (gameID, userID, callback) {
   Game.findOne({
     gameID: gameID,
     $or: [
-      { playerB: userID },
-      { playerW: userID }
+      { "playerB.userID": userID },
+      { "playerW.userID": userID }
     ]}, function (err, game) {
       if (err) return callback(err);
       if (!game) {
@@ -294,10 +329,10 @@ GameSchema.statics.getInitData = function (gameID, userID, callback) {
       }
       // console.log(game);
       let initData = {
-        playable: game.gameStatus === 'InProgress' ? game.getCurrentPlayerID().toString() === userID : false,
-        ownColor: game.playerB.toString() === userID ? 'B' : 'W',
-        gameBoard: game.playerB.toString() === userID ? reverse(game.curBoard) : game.curBoard,
-        opponent: game.playerB.toString() === userID ? game.playerW : game.playerB
+        playable: game.status === 'InProgress' ? game.getCurrentPlayerID().toString() === userID : false,
+        ownColor: game.playerB.userID.toString() === userID ? 'B' : 'W',
+        gameBoard: game.playerB.userID.toString() === userID ? reverse(game.currentBoard) : game.currentBoard,
+        opponent: game.playerB.userID.toString() === userID ? game.playerW.userID : game.playerB.userID
       };
       return callback(null, initData);
   })

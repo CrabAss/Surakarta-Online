@@ -79,7 +79,7 @@ module.exports = function(io, app, next) {
       }
     });
 
-    socket.on('ask', function (msg) {
+    socket.on('ask_game', function (msg) {
       console.log('Client', socket.handshake.session.userId, 'asking game for', msg.gameID);
       // SEND BACK: INIT
       // gameBoard, ownColor, countdown, opponent
@@ -139,7 +139,7 @@ module.exports = function(io, app, next) {
       Game.findOne({gameID: msg.gameID}, function (err, currentGame) {
         currentGame.moveStep(msg.oldPos, msg.newPos, msg.timeUsed, function (err, gameBoard, winner) {
           if (err) {
-            if (err.status === 406) {
+            if (err.status === 400) {
               socket.emit('err', {status: err.status, message: err.message});
               // return next(err);
             } else {

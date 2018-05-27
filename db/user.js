@@ -3,6 +3,40 @@ let Game = require('./game');
 let bcrypt = require('bcrypt');
 
 
+let UserPrivacySchema = new mongoose.Schema({
+  isAnonymous: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  showStatus: {
+    type: Boolean,
+    required: true,
+    default: true
+  },
+  showAge: {
+    type: Boolean,
+    required: true,
+    default: true
+  },
+  showGender: {
+    type: Boolean,
+    required: true,
+    default: true
+  },
+  showCountry: {
+    type: Boolean,
+    required: true,
+    default: true
+  },
+  collectLocation: {
+    type: Boolean,
+    required: true,
+    default: true
+  }
+});
+
+
 let UserSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -28,7 +62,12 @@ let UserSchema = new mongoose.Schema({
   },
   location: [],
   gameWin: [String],
-  gameLose: [String]
+  gameLose: [String],
+  privacy: {
+    type: UserPrivacySchema,
+    required: true,
+    default: {}
+  }
 });
 
 
@@ -48,48 +87,18 @@ UserSchema.virtual('rateWin').get(function () {
   return this.gameWin.length + this.gameLose.length === 0 ? 0 : this.gameWin.length / (this.gameWin.length + this.gameLose.length);
 });
 
+
 UserSchema.methods.getGameInProgress = function (callback) {
   Game.findOne({
-    gameStatus: 'InProgress',
+    status: 'InProgress',
     $or: [
-      { playerB: this._id },
-      { playerW: this._id }
+      { "playerB.userID": this._id },
+      { "playerW.userID": this._id }
     ]
   }, function (err, game) {
     return callback(game ? game.gameID : "");
   });
 };
-
-/*UserSchema.methods.getWin = function (callback) {
-  Game.count({
-    gameStatus: { $in: ['Surrendered', 'Finished'] },
-    winner: this._id
-  }, function (err, winCount) {
-    return callback(winCount);
-  });
-};
-
-UserSchema.methods.getLose = function (callback) {
-  Game.count({
-    gameStatus: { $in: ['Surrendered', 'Finished'] },
-    $or: [
-      { playerB: this._id },
-      { playerW: this._id }
-    ],
-    winner: { $ne: this._id }
-  }, function (err, loseCount) {
-    return callback(loseCount);
-  });
-};
-
-UserSchema.methods.getWinRate = function(callback) {
-  this.getWin(function (winCount) {
-    this.getLose(function (loseCount) {
-      if (winCount + loseCount === 0) return callback(0);
-      else return callback(winCount / (winCount + loseCount));
-    })
-  })
-};*/
 
 UserSchema.statics.updateGameRecord = function (gameID, winner, loser, callback) {
   this.findById(winner, function (err, user) {
@@ -142,6 +151,7 @@ UserSchema.statics.authenticate = function (username, password, callback) {
 };
 
 UserSchema.methods.updateLocation = function (ll, callback) {
+  if (!this.privacy.collectLocation) return;
   this.location = ll;
   this.save(function (err) {
     if (err) return callback(err);

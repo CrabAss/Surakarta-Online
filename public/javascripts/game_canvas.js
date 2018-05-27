@@ -11,7 +11,7 @@ $(document).ready(function() {
   socket = io('/game', { path: '/g/socket' });
   socket.on('hello', function (msg) {
     // alert(data.username);
-    socket.emit('ask', {gameID: gameID});
+    socket.emit('ask_game', {gameID: gameID});
   });
   socket.on('init', function (msg) {
     // gameBoard, playable, ownColor, opponent
@@ -52,14 +52,14 @@ $(document).ready(function() {
   socket.on('end', function (msg) {
     playable = false;
     alert("Game over! " + (msg.winner === ownColor ? 'You are the winner!' : 'Your opponent is the winner.'));
-    window.location = '/u';
+    window.location = '/';
   });
   socket.on('duplicate', function () {
     alert("You have opened duplicate windows! Please close this window to continue playing. ");
   });
   socket.on('forbidden', function () {
     alert('Sorry but you have no permission to join this game. ');
-    window.location = '/u';
+    window.location = '/';
   });
   // socket.on('timeout', function (data) {
   //   // surrendered
