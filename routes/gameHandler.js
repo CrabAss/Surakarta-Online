@@ -42,8 +42,12 @@ router.get('/:gameID', function (req, res, next) {
       { "playerB.userID": req.session.userId },
       { "playerW.userID": req.session.userId }
     ]}, function (err, game) {
-    if (!game) res.redirect('/g/hall');
-    else res.render("game_play");
+    if (!game) {
+      res.redirect('/g/hall');
+      return;
+    }
+    if (game.status === "InProgress") res.render("game_play");
+    else res.send("This game is finished!");  // TO BE IMPLEMENTED: game replay
   });
 });
 

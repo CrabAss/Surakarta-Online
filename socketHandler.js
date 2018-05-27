@@ -139,13 +139,8 @@ module.exports = function(io, app, next) {
       Game.findOne({gameID: msg.gameID}, function (err, currentGame) {
         currentGame.moveStep(msg.oldPos, msg.newPos, msg.timeUsed, function (err, gameBoard, winner) {
           if (err) {
-            if (err.status === 400) {
-              socket.emit('err', {status: err.status, message: err.message});
-              // return next(err);
-            } else {
-              socket.emit('err', {status: err.status, message: err.message});
-              return next(err);
-            }
+            socket.emit('err', {status: err.status, message: err.message});
+            if (err.status !== 400) return next(err);
           }
           socket.to(msg.gameID).emit('update', {gameBoard: gameBoard});
           if (winner) {

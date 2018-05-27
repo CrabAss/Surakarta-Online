@@ -300,19 +300,22 @@ $(document).ready(function() {
   };
 
   function setCursor(param) {
+    if (!playable && param !== "default") param = "not-allowed";
     if (typeof param === "string") {
-      document.body.style.cursor = param;
+      if (param === "default") document.body.style.removeProperty('cursor');
+      else document.body.style.cursor = param;
     } else {
       let hitResult = checkerLayer.hitTest(param.point, hitOptions);
-      document.body.style.cursor = !hitResult ? "default" : hitResult.item.checkerPlayer !== ownColor ? "not-allowed" : "grab";
+      if (!hitResult) {
+        document.body.style.removeProperty('cursor');
+      } else {
+        document.body.style.cursor = hitResult.item.checkerPlayer !== ownColor ? "not-allowed" : "grab";
+      }
     }
   }
 
   checkerLayer.onMouseEnter = function(event) {
-    if (!hitItem) {
-      if (playable) setCursor(event);
-      else setCursor("not-allowed");
-    }
+    if (!hitItem) setCursor(event);
   };
 
   checkerLayer.onMouseLeave = function(event) {
@@ -320,55 +323,54 @@ $(document).ready(function() {
   };
 
   checkerLayer.onMouseUp = function (event) {
+    if (!hitItem) return;
     let nearestPoint, nearestDistance = 999999;
-    let finalCord = {x: null, y: null};
-    if (hitItem) {
-      for (let i = 0; i < 6; i++) {
-        for (let j = 0; j < 6; j++) {
-          if (hitItem.position.getDistance(board[i][j]) < nearestDistance) {
-            nearestPoint = board[i][j];
-            nearestDistance = hitItem.position.getDistance(board[i][j]);
-            finalCord.x = i; finalCord.y = j;
-          }
+
+    for (let i = 0; i < 6; i++) {
+      for (let j = 0; j < 6; j++) {
+        if (hitItem.position.getDistance(board[i][j]) < nearestDistance) {
+          nearestPoint = board[i][j];
+          nearestDistance = hitItem.position.getDistance(board[i][j]);
         }
       }
+    }
 
-      let accepted = false;
-      movePos.forEach(function (element) {
-        if (element.equals(nearestPoint)){
+    let accepted =
+      movePos.some(function (element) {
+        if (element.equals(nearestPoint)) {
           hitItem.position = nearestPoint;
-          accepted = true;
+          return true;
         }
-      });
-      attackPos.forEach(function (element) {
+        return false;
+      }) ||
+      attackPos.some(function (element) {
         if (element.equals(nearestPoint)) {
           let delChecker = findChecker(element, true);
           delChecker.remove();  // bug...
           hitItem.position = nearestPoint;
-          accepted = true;
+          return true;
         }
+        return false;
       });
 
-      if (accepted) {
-        // send the move to server
-        const oldPos = getCoord(hitOriginalPos).x + getCoord(hitOriginalPos).y * 6;
-        const newPos = getCoord(nearestPoint).x + getCoord(nearestPoint).y * 6;
-        socket.emit('move', {gameID: gameID, oldPos: oldPos, newPos: newPos, timeUsed: Math.abs(new Date() - startTime)});
-        playable = false;
-        $('.moving-badge.own').addClass('d-none');
-        $('.waiting-badge.opponent').addClass('d-none');
-        $('.moving-badge.opponent').removeClass('d-none');
-        $('.waiting-badge.own').removeClass('d-none');
-        setCursor("not-allowed");
-      }
-      else {
-        hitItem.position = hitOriginalPos;
-        setCursor(event);
-      }
-
-      hintLayer.removeChildren();
-      hitItem = hitOriginalPos = mouseOffset = null;
+    if (accepted) {
+      // send the move to server
+      const oldPos = getCoord(hitOriginalPos).x + getCoord(hitOriginalPos).y * 6;
+      const newPos = getCoord(nearestPoint).x + getCoord(nearestPoint).y * 6;
+      socket.emit('move', {gameID: gameID, oldPos: oldPos, newPos: newPos, timeUsed: Math.abs(new Date() - startTime)});
+      // front-end works
+      playable = false;
+      $('.moving-badge.own').addClass('d-none');
+      $('.waiting-badge.opponent').addClass('d-none');
+      $('.moving-badge.opponent').removeClass('d-none');
+      $('.waiting-badge.own').removeClass('d-none');
+    } else {
+      hitItem.position = hitOriginalPos;
     }
+
+    setCursor(event);
+    hintLayer.removeChildren();
+    hitItem = hitOriginalPos = mouseOffset = null;
   };
 
   function findChecker(point, isOther) {
