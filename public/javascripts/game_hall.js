@@ -45,9 +45,13 @@ $(document).ready(function () {
   socket = io('/hall', { path: '/g/socket' });
   let alertModal = $('#alertModal');
   socket.on('hello', function (data) {
-    // SUCCESSFULLY JOINED THE HALL
+    $("#main-directive").text("Waiting for another player...");
+    $("#alter").removeAttr("style");
   });
   socket.on('new', function (data) {
+    $("#main-directive").text("Game is created successfully!");
+    $("#copyBtn").remove();
+    $("#alter-directive").text("Redirecting...");
     window.location.replace(data.gameID);
   });
   socket.on('anonymous', function () {

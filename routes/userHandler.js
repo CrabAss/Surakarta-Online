@@ -135,9 +135,16 @@ router.post('/signup/validate/username', function(req, res, next) {
 });
 
 
-// Profile page
+// Profile page: TO BE IMPLEMENTED
 router.get('/@:username', function (req, res, next) {
-  res.send(req.params.username);
+  User.findOne({ username: req.params.username })
+    .collation({ locale: 'en', strength: 1 })
+    .exec(function (err, user) {
+      if (err) return next(err);
+      if (!user || user.privacy.isAnonymous) return res.send('User not found!');
+
+      res.send(user._id);
+    });
 });
 
 router.get('/settings', function (req, res, next) {

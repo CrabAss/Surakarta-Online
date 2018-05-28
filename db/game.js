@@ -68,13 +68,6 @@ let GameSchema = new mongoose.Schema({
     type: GamePlayerSchema,
     required: true
   },
-  /*playerFirst: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true
-  },
-  winner: {
-    type: mongoose.Schema.Types.ObjectId
-  },*/
   currentBoard: { /* black --- white */
     type: String,
     required: true,
@@ -327,7 +320,6 @@ GameSchema.statics.getInitData = function (gameID, userID, callback) {
         err.status = 403;
         return callback(err);
       }
-      // console.log(game);
       let initData = {
         playable: game.status === 'InProgress' ? game.getCurrentPlayerID().toString() === userID : false,
         ownColor: game.playerB.userID.toString() === userID ? 'B' : 'W',

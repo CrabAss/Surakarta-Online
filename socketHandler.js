@@ -46,6 +46,7 @@ module.exports = function(io, app, next) {
                   if (err) return console.log(err);
                   hall.emit('new', {gameID: game.gameID});
                   console.log('New game created:', game.gameID);
+                  hall.connected[socket.id].disconnect(true);
                 });
               }
             }
