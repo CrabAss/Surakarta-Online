@@ -29,6 +29,10 @@ router.get('/map', function(req, res, next) {
 
 router.get('/geojsonp', function(req, res, next) {
   ifSignedIn(req, next, function () {
+    if (req.header("Referer") !== "https://s.crabass.me/stat/map") {
+      res.status(403).send('Forbidden');
+      return;
+    }
     User.find({}, function (err, users) {
       if (err) return next(err);
       let mapArray = [];
@@ -45,8 +49,7 @@ router.get('/geojsonp', function(req, res, next) {
       res.send('geo_callback(' + JSON.stringify(geoJson.parse(mapArray, {Point: ['lat', 'lng']})) + ')');
     });
   }, function () {
-    res.setHeader('content-type', 'application/json-p');
-    res.send('geo_callback()');
+    res.status(403).send('Forbidden');
   })
 });
 

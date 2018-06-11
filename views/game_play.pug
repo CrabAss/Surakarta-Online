@@ -16,6 +16,7 @@ html
     script(src='/javascripts/pace.min.js')
     script(src='/javascripts/game_canvas.js')
   body
+    // "Loading" directive before init data loaded -- TO BE IMPLEMENTED
     #alert.alert.alert-danger.fade(role='alert')
       strong#strongMsg
       span#detailMsg
@@ -31,7 +32,7 @@ html
             .opponent.waiting-badge.h4.w-100.text-right.d-none
               span.badge.badge-secondary.font-weight-normal Waiting
         .col.col-auto
-          canvas#gameCanvas()
+          canvas#gameCanvas
         .col
           #own.d-flex.flex-column-reverse.h-100.pb-5
             .info.h3.w-100.text-left

@@ -252,7 +252,11 @@ GameSchema.methods.moveStep = function (oldPos, newPos, timeUsed, callback) {
         gameWinner = winner;
       }
     });
-    return callback(null, this.getCurrentPlayer() === 'B' ? reverse(this.currentBoard) : this.currentBoard, gameWinner);
+    return callback(null,
+      this.getCurrentPlayer() === 'B' ? reverse(this.currentBoard) : this.currentBoard,
+      this.getCurrentPlayer() === 'B' ? 35 - oldPos : oldPos,
+      this.getCurrentPlayer() === 'B' ? 35 - newPos : newPos,
+      gameWinner);
   } else return errRejected();
 
   function errRejected() {

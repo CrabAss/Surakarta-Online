@@ -15,7 +15,7 @@ $(document).ready(function() {
   });
   socket.on('init', function (msg) {
     // gameBoard, playable, ownColor, opponent
-    redrawChecker(msg.gameBoard);
+    redrawChecker(msg);
     ownColor = msg.ownColor;
     playable = msg.playable;
     if (playable) {
@@ -27,6 +27,12 @@ $(document).ready(function() {
     }
     $('#surrenderBtn').removeClass('d-none');
     socket.emit('ask_user', {opponent: msg.opponent});
+    checkerNewDef = new paper.Symbol(new paper.Path.Star({
+      points: 5,
+      radius1: 8,
+      radius2: 4,
+      fillColor: ownColor === 'B' ? 'black' : 'white'
+    }))
   });
   socket.on('user', function (msg) {
     own = msg.ownPlayer;
@@ -38,13 +44,15 @@ $(document).ready(function() {
   });
   socket.on('update', function (msg) {
     // gameBoard
-    redrawChecker(msg.gameBoard);
+    redrawChecker(msg);
     playable = true;
     $('.moving-badge.own').removeClass('d-none');
     $('.waiting-badge.opponent').removeClass('d-none');
     $('.moving-badge.opponent').addClass('d-none');
     $('.waiting-badge.own').addClass('d-none');
     startTime = new Date();
+    // restore cursor status instantly when playable -- TO BE IMPLEMENTED
+
   });
   socket.on('err', function (msg) {
     alert('Error ' + msg.status + ': ' + msg.message);
@@ -206,22 +214,41 @@ $(document).ready(function() {
     strokeColor: 'black',
     strokeWidth: 2
   }));
+  let checkerOldDef = new paper.Symbol(new paper.Shape.Circle({
+    radius: checkerRadius,
+    strokeColor: 'black',
+    strokeWidth: 2,
+    strokeCap: 'round',
+    dashArray: [2, 4]
+  }));
+  let checkerNewDef;
+  let oldChecker, newChecker;
 
   /* draw & redraw: receiving msg from server */
 
   function redrawChecker(msg) {
     checkerLayer.activate();
     checkerLayer.removeChildren();
-    let checkerSeq = msg.split(""), curPosition;
-    for (let i = 0; i < checkerSeq.length; i++) {
+    let curPosition;
+    for (let i = 0; i < msg.gameBoard.length; i++) {
       curPosition = board[i % 6][~~(i / 6)];
-      if (checkerSeq[i] === 'B') {
+      if (msg.gameBoard.charAt(i) === 'B') {
         let c = checkerBDef.place(curPosition);
         c.checkerPlayer = 'B';
-      } else if (checkerSeq[i] === 'W') {
+      } else if (msg.gameBoard.charAt(i) === 'W') {
         let c = checkerWDef.place(curPosition);
         c.checkerPlayer = 'W';
       }
+    }
+
+    if (msg.hasOwnProperty('newPos')){
+      newChecker = checkerNewDef.place(board[msg.newPos % 6][~~(msg.newPos / 6)]);
+      // newChecker.checkerPlayer = ownColor === 'B' ? 'white' : 'black';
+    }
+
+    if (msg.hasOwnProperty('oldPos')) {
+      checkerboardLayer.activate();
+      oldChecker = checkerOldDef.place(board[msg.oldPos % 6][~~(msg.oldPos / 6)]);
     }
   }
 
@@ -254,6 +281,7 @@ $(document).ready(function() {
   };
   let hitItem, hitOriginalPos, mouseOffset;
   let movePos = [], attackPos = [];
+  let isMovable;  // restore cursor status instantly when playable -- TO BE IMPLEMENTED
 
   checkerLayer.onMouseDown = function(event) {
 
@@ -300,6 +328,8 @@ $(document).ready(function() {
   };
 
   function setCursor(param) {
+    // restore cursor status instantly when playable -- TO BE IMPLEMENTED
+
     if (!playable && param !== "default") param = "not-allowed";
     if (typeof param === "string") {
       if (param === "default") document.body.style.removeProperty('cursor');
@@ -359,6 +389,8 @@ $(document).ready(function() {
       const newPos = getCoord(nearestPoint).x + getCoord(nearestPoint).y * 6;
       socket.emit('move', {gameID: gameID, oldPos: oldPos, newPos: newPos, timeUsed: Math.abs(new Date() - startTime)});
       // front-end works
+      if (newChecker && !newChecker.isEmpty()) newChecker.remove();
+      if (oldChecker && !oldChecker.isEmpty()) oldChecker.remove();
       playable = false;
       $('.moving-badge.own').addClass('d-none');
       $('.waiting-badge.opponent').addClass('d-none');
@@ -376,7 +408,7 @@ $(document).ready(function() {
   function findChecker(point, isOther) {
     let checker = null;
     checkerLayer.children.forEach(function (element) {
-      if (element.position.equals(point)) {
+      if (element.checkerPlayer && element.position.equals(point)) {
         if (isOther) {
           if (hitItem) {
             if (element.checkerPlayer !== ownColor) checker = element;

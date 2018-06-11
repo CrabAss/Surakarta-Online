@@ -138,12 +138,12 @@ module.exports = function(io, app, next) {
       // SEND BACK: UPDATE / END
       // gameBoard
       Game.findOne({gameID: msg.gameID}, function (err, currentGame) {
-        currentGame.moveStep(msg.oldPos, msg.newPos, msg.timeUsed, function (err, gameBoard, winner) {
+        currentGame.moveStep(msg.oldPos, msg.newPos, msg.timeUsed, function (err, gameBoard, oldPos, newPos, winner) {
           if (err) {
             socket.emit('err', {status: err.status, message: err.message});
             if (err.status !== 400) return next(err);
           }
-          socket.to(msg.gameID).emit('update', {gameBoard: gameBoard});
+          socket.to(msg.gameID).emit('update', {gameBoard: gameBoard, oldPos: oldPos, newPos: newPos});
           if (winner) {
             User.updateGameRecord(currentGame.gameID, currentGame.winner, currentGame.loser, function (err) {
               if (err) return callback(err);

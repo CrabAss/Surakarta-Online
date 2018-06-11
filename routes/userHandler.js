@@ -56,7 +56,7 @@ router.post('/signin', reCaptcha.middleware.verify, function(req, res, next) {
           } else {
             req.session.userId = user._id;
             req.session.username = user.username;
-            user.updateLocation(geoip.lookup(req.headers['x-forwarded-for'].split(", ")[0] || req.connection.remoteAddress).ll, function (err) {
+            user.updateLocation(geoip.lookup(req.headers['cf-connecting-ip'] || req.ip || req.connection.remoteAddress).ll, function (err) {
               return console.error(err);
             });
             return res.redirect('/');
@@ -84,7 +84,7 @@ router.get('/signup', function(req, res, next) {
   ifSignedIn(req, next, function () {
     return res.redirect('/');
   }, function () {
-    let ipCountry = req.headers['cf-ipcountry'] || geoip.lookup(req.headers['x-forwarded-for'] || req.connection.remoteAddress).country;
+    let ipCountry = req.headers['cf-ipcountry'] || geoip.lookup(req.ip || req.connection.remoteAddress).country;
     res.render('user_signup', {
       countryList: countryList,
       countryDefault: ipCountry,
@@ -118,7 +118,7 @@ router.post('/signup', reCaptcha.middleware.verify, function(req, res, next) {
 });
 
 router.post('/signup/validate/username', function(req, res, next) {
-  if (req.body.username) {
+  if (req.body.username && req.header("Referer") === "https://s.crabass.me/u/signup") {
     User.findOne({ username: req.body.username })
         .collation({ locale: 'en', strength: 1 })
         .exec(function (err, user) {
@@ -131,6 +131,8 @@ router.post('/signup/validate/username', function(req, res, next) {
           return res.send('no');
       }
     });
+  } else {
+    res.status(400).send('Bad Request');
   }
 });
 
@@ -172,11 +174,8 @@ router.get('/signout', function (req, res, next) {
   if (req.session) {
     // delete session object
     req.session.destroy(function (err) {
-      if (err) {
-        return next(err);
-      } else {
-        return res.redirect('/');
-      }
+      if (err) return next(err);
+      return res.redirect('/');
     });
   }
 });
