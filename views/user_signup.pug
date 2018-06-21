@@ -54,6 +54,16 @@ html
             select#country.form-control.custom-select(name='country' autocomplete='off')
               each item in countryList
                 option(value=item.abbr selected=item.abbr === countryDefault)=item.name
+        .form-row
+          .form-group.col
+            .custom-control.custom-checkbox
+              input#profileVisible.custom-control-input(name='profileVisible' type='checkbox' checked)
+              label.custom-control-label(for='profileVisible') I agree to make my profile visible to registered users.
+        .form-row
+          .form-group.col
+            .custom-control.custom-checkbox
+              input#shareLocation.custom-control-input(name='shareLocation' type='checkbox' checked)
+              label.custom-control-label(for='shareLocation') I agree to share my estimated location and display my profile on the Player Map.
         #recaptcha.g-recaptcha(data-sitekey=reCaptchaKey data-callback="onSubmit" data-size="invisible")
         button#submitBtn.btn.btn-primary.btn-block(type='button' disabled) Sign Up
         .alert.alert-secondary.mt-3(role="alert")
@@ -63,5 +73,5 @@ html
       .alert.alert-success(role="alert" style="display: none")
         h4.alert-heading Well done!
         p.mb-0 You have successfully signed up! You may&nbsp;
-          a(href='/u/signin' class="alert-link") sign in
+          a(href='/' class="alert-link") return to homepage
           |  now.

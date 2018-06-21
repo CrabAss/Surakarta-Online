@@ -8,13 +8,13 @@ router.use(bodyParser.urlencoded({ extended: false }));
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  User.findById(req.session.userId).exec(function (error, user) {
+  User.findById(req.session.userID).exec(function (error, user) {
     if (error) {
       return next(error);
     } else {
       if (user !== null) {
         user.getGameInProgress(function (gameInProgress) {
-          res.render('index', {username: user.username, gameID: gameInProgress});
+          res.render('index', {username: user.displayName, gameID: gameInProgress});
         });
       }
       else {

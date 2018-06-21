@@ -16,3 +16,8 @@ canvas {
     border-radius: 0;
     z-index:9999;
 }
+
+.flag-icon,
+.flag-icon-unk {
+    background-image: url("/images/unk-flag.svg");
+}

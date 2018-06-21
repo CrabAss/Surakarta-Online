@@ -69,17 +69,18 @@ function valPassword() {
 function valBirthYear() {
   let birthyear_field = $("#birthyear");
   let err_text = $("#birthyear-container").find(".invalid-feedback");
-  if ($.isNumeric(birthyear_field.val()) && parseInt(birthyear_field.val()) > 1900 && parseInt(birthyear_field.val()) <= (new Date()).getFullYear()) {
+  if (birthyear_field.val().length === 0) {
+    birthyear_field.removeClass("is-valid");
+    birthyear_field.removeClass("is-invalid");
+    return true;
+  } else if ($.isNumeric(birthyear_field.val()) && parseInt(birthyear_field.val()) > 1900 && parseInt(birthyear_field.val()) <= (new Date()).getFullYear()) {
     birthyear_field.removeClass("is-invalid");
     birthyear_field.addClass("is-valid");
     return true;
   } else {
     birthyear_field.removeClass("is-valid");
     birthyear_field.addClass("is-invalid");
-    if (birthyear_field.val().length === 0)
-      err_text.text("Year of birth is required. ");
-    else
-      err_text.text("You know, it's NOT your year of birth :-)");
+    err_text.text("You know, it's NOT your year of birth :-)");
     return false;
   }
 }
@@ -89,12 +90,8 @@ function valGender() {
   if ($("input:radio[name=gender]").is(":checked")) {
     gender.find(".invalid-feedback").css("display", "none");
     gender.find(".valid-feedback").css("display", "block");
-    return true;
-  } else {
-    gender.find(".invalid-feedback").css("display", "block");
-    gender.find(".valid-feedback").css("display", "none");
-    return false;
   }
+  return true;
 }
 
 function valForm(vldUsername) {

@@ -10,7 +10,7 @@ module.exports = function(io, app, next) {
   game.use(sharedSession(app.sessionMiddleware));
 
   hall.on('connection', function (socket) {
-    User.findById(socket.handshake.session.userId).exec(function (error, user) {
+    User.findById(socket.handshake.session.userID).exec(function (error, user) {
       if (error) {
         return next(error);
       } else {
@@ -25,14 +25,14 @@ module.exports = function(io, app, next) {
                 if (hall.connected.hasOwnProperty(i))
                   if (i !== socket.id) hallSockets.push(i);
               hallSockets.forEach(function (existingSocket) {
-                if (hall.connected[existingSocket].handshake.session.userId === socket.handshake.session.userId) {
-                  console.log('Duplicate sockets for the same user: ' + socket.handshake.session.userId +'!');
+                if (hall.connected[existingSocket].handshake.session.userID === socket.handshake.session.userID) {
+                  console.log('Duplicate sockets for the same user: ' + socket.handshake.session.userID +'!');
                   socket.emit('duplicate');
                   hall.connected[socket.id].disconnect(true);
                 }
               });
               console.log('User "' + user.username + '" connected. ');
-              socket.emit('hello', { username: user.username });
+              socket.emit('hello', { username: user.displayName });
 
               console.log('Number of Users:', Object.keys(hall.connected).length);
               if (Object.keys(hall.connected).length >= 2)  {
@@ -41,7 +41,7 @@ module.exports = function(io, app, next) {
                 let hallUserID = [];
                 for (let i in hall.connected)
                   if (hall.connected.hasOwnProperty(i))
-                    hallUserID.push(hall.connected[i].handshake.session.userId);
+                    hallUserID.push(hall.connected[i].handshake.session.userID);
                 Game.newGame(hallUserID, function (err, game) {
                   if (err) return console.log(err);
                   hall.emit('new', {gameID: game.gameID});
@@ -65,13 +65,13 @@ module.exports = function(io, app, next) {
   });
 
   game.on('connection', function (socket) {
-    User.findById(socket.handshake.session.userId).exec(function (error, user) {
+    User.findById(socket.handshake.session.userID).exec(function (error, user) {
       if (error) {
         return next(error);
       } else {
         if (user !== null) {  // user with identity
             console.log('User "' + user.username + '" connected. ');
-            socket.emit('hello', { username: user.username });
+            socket.emit('hello', { username: user.displayName });
         } else {
           console.log('An anonymous user connected');
           socket.emit('anonymous');
@@ -81,10 +81,10 @@ module.exports = function(io, app, next) {
     });
 
     socket.on('ask_game', function (msg) {
-      console.log('Client', socket.handshake.session.userId, 'asking game for', msg.gameID);
+      console.log('Client', socket.handshake.session.userID, 'asking game for', msg.gameID);
       // SEND BACK: INIT
       // gameBoard, ownColor, countdown, opponent
-      Game.getInitData(msg.gameID, socket.handshake.session.userId, function (err, initData) {
+      Game.getInitData(msg.gameID, socket.handshake.session.userID, function (err, initData) {
         if (err) {
           if (err.status === 403) {
             socket.emit('forbidden');
@@ -100,8 +100,8 @@ module.exports = function(io, app, next) {
               if (game.connected[i].rooms[msg.gameID] && i !== socket.id)
                 roomSockets.push(i);
           roomSockets.forEach(function (existingSocket) {
-            if (game.connected[existingSocket].handshake.session.userId === socket.handshake.session.userId) {
-              console.log('Duplicate sockets for the same user: ' + socket.handshake.session.userId +'!');
+            if (game.connected[existingSocket].handshake.session.userID === socket.handshake.session.userID) {
+              console.log('Duplicate sockets for the same user: ' + socket.handshake.session.userID +'!');
               socket.emit('duplicate');
               game.connected[socket.id].disconnect(true);
             }
@@ -113,17 +113,17 @@ module.exports = function(io, app, next) {
 
     socket.on('ask_user', function (msg) {
       let own = {}, opponent = {};
-      User.findById(socket.handshake.session.userId).exec(function (error, user) {
+      User.findById(socket.handshake.session.userID).exec(function (error, user) {
         if (error) return next(error);
         own = {
-          username: user.username,
+          username: user.displayName,
           gender: user.gender,
           country: user.country
         };
         User.findById(msg.opponent).exec(function (error, user) {
           if (error) return next(error);
           opponent = {
-            username: user.username,
+            username: user.displayName,
             gender: user.gender,
             country: user.country
           };
@@ -161,7 +161,7 @@ module.exports = function(io, app, next) {
       // gameID
       // SEND BACK: END
       Game.findOne({gameID: msg.gameID}, function (err, currentGame) {
-        currentGame.surrenderGame(socket.handshake.session.userId, function (err, winner) {
+        currentGame.surrenderGame(socket.handshake.session.userID, function (err, winner) {
           User.updateGameRecord(currentGame.gameID, currentGame.winner, currentGame.loser, function (err) {
             if (err) return callback(err);
           });
@@ -177,6 +177,25 @@ module.exports = function(io, app, next) {
     // timer???
 
     socket.on('disconnect', function (reason) {
+      // Auto surrender after anonymous user disconnected
+      if (socket.handshake.session.isTemporary === true && reason !== 'ping timeout') {
+        Game.findOne({
+          $or: [
+            { "playerB.userID": socket.handshake.session.userID },
+            { "playerW.userID": socket.handshake.session.userID }
+          ],
+          status: "InProgress"
+        }, function (err, currentGame) {
+          if (!currentGame) return;
+          currentGame.surrenderGame(socket.handshake.session.userID, function (err, winner) {
+            User.updateGameRecord(currentGame.gameID, currentGame.winner, currentGame.loser, function (err) {
+              if (err) return callback(err);
+            });
+            socket.to(currentGame.gameID).emit('end', {winner: winner});
+            console.log('Surrendered due to disconnection of anonymous user!!! Winner:', winner);
+          });
+        });
+      }
       console.log('socket disconnected because of', reason);
     });
   });

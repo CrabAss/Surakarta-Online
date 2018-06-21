@@ -15,6 +15,7 @@ let statHandler = require('./routes/statHandler');
 let MongoStore = require('connect-mongo')(session);
 
 app.set('trust proxy', 'loopback');
+global.DOMAIN_ROOT = 'https://s.crabass.me/';
 
 //connect to MongoDB
 let db = mongoose.connection;

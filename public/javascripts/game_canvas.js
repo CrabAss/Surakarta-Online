@@ -39,8 +39,8 @@ $(document).ready(function() {
     opponent = msg.opponentPlayer;
     $('span.username.own').text(own.username);
     $('span.username.opponent').text(opponent.username);
-    $('span.flag-icon.own').addClass('flag-icon-' + own.country.toLowerCase());
-    $('span.flag-icon.opponent').addClass('flag-icon-' + opponent.country.toLowerCase());
+    if (own.country) $('span.flag-icon.own').addClass('flag-icon-' + own.country.toLowerCase());
+    if (opponent.country) $('span.flag-icon.opponent').addClass('flag-icon-' + opponent.country.toLowerCase());
   });
   socket.on('update', function (msg) {
     // gameBoard
@@ -243,7 +243,6 @@ $(document).ready(function() {
 
     if (msg.hasOwnProperty('newPos')){
       newChecker = checkerNewDef.place(board[msg.newPos % 6][~~(msg.newPos / 6)]);
-      // newChecker.checkerPlayer = ownColor === 'B' ? 'white' : 'black';
     }
 
     if (msg.hasOwnProperty('oldPos')) {

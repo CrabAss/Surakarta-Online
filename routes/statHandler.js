@@ -8,7 +8,7 @@ router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: false }));
 
 function ifSignedIn(req, next, ifYes, ifNo) {
-  User.findById(req.session.userId).exec(function (error, user) {
+  User.findById(req.session.userID).exec(function (error, user) {
     if (error) {
       return next(error);
     } else {
@@ -29,7 +29,7 @@ router.get('/map', function(req, res, next) {
 
 router.get('/geojsonp', function(req, res, next) {
   ifSignedIn(req, next, function () {
-    if (req.header("Referer") !== "https://s.crabass.me/stat/map") {
+    if (req.header("Referer") !== global.DOMAIN_ROOT + "stat/map") {
       res.status(403).send('Forbidden');
       return;
     }
@@ -39,7 +39,7 @@ router.get('/geojsonp', function(req, res, next) {
       users.forEach(function (user) {
         if (user.location)
           mapArray.push({
-            name: user.username,
+            name: user.displayName,
             countWin: user.countWin,
             lat: user.location[0],
             lng: user.location[1]
