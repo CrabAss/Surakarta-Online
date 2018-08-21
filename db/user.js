@@ -1,6 +1,7 @@
 let mongoose = require('mongoose');
 let Game = require('./game');
 let bcrypt = require('bcrypt');
+let countryList = require('../static_data/country');
 
 
 let UserPrivacySchema = new mongoose.Schema({
@@ -37,7 +38,7 @@ let UserSchema = new mongoose.Schema({
     type: Number
   },
   gender: {
-    type: Number
+    type: Number  // 0 for female, 1 for male, 2 for other
   },
   country: {
     type: String
@@ -56,8 +57,21 @@ UserSchema.virtual('displayName').get(function () {
   return this.isTemporary ? "Guest" : this.username;
 });
 
+UserSchema.virtual('displayGender').get(function () {
+  if (this.gender) return this.gender === 0 ? "Female" : (this.gender === 1 ? "Male" : "Other");
+  return "Unknown";
+});
+
+UserSchema.virtual('displayCountry').get(function () {
+  if (!this.country || this.country === "UNK") return "Unknown";
+  for (let i = 0; i < countryList.length; i++) {
+    if (this.country === countryList[i].abbr) return countryList[i].name;
+  }
+});
+
 UserSchema.virtual('age').get(function () {
-  return (new Date()).getFullYear() - this.birthyear;
+  if (this.birthyear) return (new Date()).getFullYear() - this.birthyear;
+  return -1;
 });
 
 UserSchema.virtual('countWin').get(function () {
@@ -68,7 +82,7 @@ UserSchema.virtual('countLose').get(function () {
   return this.gameLose.length;
 });
 
-UserSchema.virtual('rateWin').get(function () {
+UserSchema.virtual('winningPercentage').get(function () {
   return this.gameWin.length + this.gameLose.length === 0 ? 0 : this.gameWin.length / (this.gameWin.length + this.gameLose.length);
 });
 

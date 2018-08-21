@@ -4,6 +4,7 @@ let bodyParser = require('body-parser');
 let geoip = require('geoip-lite');
 
 let User = require('../db/user');
+let Game = require('../db/game');
 let countryList = require('../static_data/country');
 
 let reCaptchaData = require('../static_data/recaptcha');
@@ -157,15 +158,62 @@ router.post('/signup/validate/username', function(req, res, next) {
 });
 
 
-// Profile page: TO BE IMPLEMENTED
 router.get('/@:username', function (req, res, next) {
+  // USER PROFILE PAGE
   User.findOne({ username: req.params.username })
     .collation({ locale: 'en', strength: 1 })
     .exec(function (err, user) {
-      if (err) return next(err);
-      if (!user || user.isTemporary) return res.send('User not found!');
-
-      res.send(user._id);
+      if (err)
+        return next(err);
+      if (!user || user.isTemporary || !user.privacy.showProfile)
+        return res.send('User not found!');
+      if (user.username !== req.params.username)
+        return res.redirect("/u/@" + user.username);
+      // res.send(user._id);
+      Game.aggregate([{
+        $match: {'gameID': { $in: user.gameWin.concat(user.gameLose)}}
+      }, {
+        $lookup: {
+          from: "users",
+          localField: "playerB.userID",
+          foreignField: "_id",
+          as: "playerBInfo"
+        }
+      }, {
+        $lookup: {
+          from: "users",
+          localField: "playerW.userID",
+          foreignField: "_id",
+          as: "playerWInfo"
+        }
+      }, {
+        $sort: {
+          startTime: -1
+        }
+      }, {
+        $project: {
+          _id: false,
+          gameID: true,
+          startTime: true,
+          totalMoves: true,
+          ownColor: {$cond:{
+              if: {$eq: ["$playerB.userID", user._id]},
+              then: 'B',
+              else: 'W'
+          }},
+          isWin: {$in: ["$gameID", user.gameWin]},
+          opponent: {$cond:{
+            if: {$eq: ["$playerB.userID", user._id]},
+            then: {$arrayElemAt: ["$playerWInfo", 0]},
+            else: {$arrayElemAt: ["$playerBInfo", 0]}
+          }}
+        }
+      }], function(err, games){
+        for (let i = 0; i < games.length; i++) {
+          games[i].opponent = games[i].opponent.isTemporary ? null : games[i].opponent.username;
+        }
+        res.render("user_profile", {user: user, games: games});
+      });
     });
 });
 

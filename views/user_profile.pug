@@ -1,10 +1,49 @@
-extends layout
-
-block content
-  h1= title
-  p Welcome, #{username}!
-  p More features are coming soooooon.
-  p
-    a(href='/g/hall') Click here to play game!
-  p
-    a(type='button' href='/u/signout') Sign Out
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
+    title User Profile - Surakarta
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css', integrity='sha256-Md8eaeo67OiouuXAi8t/Xpd8t2+IaJezATVTWbZqSOw=', crossorigin='anonymous')
+    link(rel='stylesheet' href='/stylesheets/signup.css')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.slim.min.js', integrity='sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=', crossorigin='anonymous')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/js/bootstrap.bundle.min.js', integrity='sha256-ko+X8xDY92jF49Uh47HOLP8Vb5zGDF0J+tdy9KLEP1I=', crossorigin='anonymous')
+  body
+    .user-body
+      h1=user.username
+      dl.row
+        if user.gender
+          dt.col-sm-5 Gender
+          dd.col-sm-7=user.displayGender
+        if user.age >= 0
+          dt.col-sm-5 Age
+          dd.col-sm-7=user.age
+        if user.country
+          dt.col-sm-5 Country / Region
+          dd.col-sm-7=user.displayCountry
+      hr
+      dl.row
+        dt.col-sm-5 Completed Games
+        dd.col-sm-7=user.gameCount
+        dt.col-sm-5 Winning Percentage
+        dd.col-sm-7=(user.winningPercentage * 100).toFixed(2) + '%'
+      table.table.table-hover
+        thead
+          tr
+            th(scope='col') Game ID
+            th(scope='col') Opponent
+            th(scope='col') Moves
+            //th(scope='col') Start Time
+            th(scope='col') Result
+        tbody
+          each game in games
+            tr
+              th(scope='row')=game.gameID
+              td
+                if game.opponent
+                  a(href="/u/@" + game.opponent)=game.opponent
+                else
+                  | Guest
+              td=game.totalMoves
+              //td=game.startTime
+              td=game.isWin ? "Win" : "Lose"
