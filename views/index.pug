@@ -7,6 +7,13 @@ html
     link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha256-NJWeQ+bs82iAeoT5Ktmqbi3NXwxcHlfaVejzJI2dklU=" crossorigin="anonymous")
     link(rel='stylesheet' href='/stylesheets/signup.css')
     link(rel='stylesheet' href='/stylesheets/pace-flash.css')
+    if !username
+      script(src="https://www.google.com/recaptcha/api.js" async defer)
+      script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous")
+      script.
+        function onSubmit() {
+          $("form").submit();
+        }
     script(src='/javascripts/pace.min.js')
   body
     .user-body.d-flex.flex-column.justify-content-center
@@ -16,10 +23,18 @@ html
         if gameID
           a.btn.btn-primary.btn-lg.my-2(href='/g/'+gameID) Resume your game
         else
-          a.btn.btn-primary.btn-lg.my-2(href='/g/hall') Start a new game
+          a.btn.btn-primary.btn-lg.my-2(href='/g/hall') Play Now!
         a.btn.btn-primary.my-2(href='/stat/map') View the Player Map
+        if isTemporary
+          a.btn.btn-primary.my-2(href='/u/signup') Sign Up
+          a.btn.btn-secondary.my-2(href='/u/signin') Sign In
+        else
+          a.btn.btn-primary.my-2(href='/u/@' + username) My Profile
+          a.btn.btn-secondary.my-2(href='/u/settings') Settings
         a.btn.btn-secondary.my-2(href='/u/signout') Sign Out
       else
         h1.text-center.my-4 Welcome to Surakarta!
-        a.btn.btn-primary.btn-lg.my-2(href='/u/signup') Sign Up
+        form(method="post" action="/g/hall")
+          button.btn.btn-primary.btn-block.btn-lg.my-2.g-recaptcha(data-sitekey=reCaptchaKey data-callback='onSubmit') Play Now!
+        a.btn.btn-primary.my-2(href='/u/signup') Sign Up
         a.btn.btn-secondary.my-2(href='/u/signin') Sign In

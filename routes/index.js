@@ -6,6 +6,8 @@ let bodyParser = require('body-parser');
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: false }));
 
+let reCaptchaData = require('../static_data/recaptcha');
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
   User.findById(req.session.userID).exec(function (error, user) {
@@ -13,12 +15,17 @@ router.get('/', function(req, res, next) {
       return next(error);
     } else {
       if (user !== null) {
-        user.getGameInProgress(function (gameInProgress) {
-          res.render('index', {username: user.displayName, gameID: gameInProgress});
-        });
-      }
-      else {
-        res.render('index');
+        if (user.isTemporary) {
+          user.getGameInProgress(function (gameInProgress) {
+            res.render('index', {username: user.displayName, gameID: gameInProgress, isTemporary: true});
+          });
+        } else {
+          user.getGameInProgress(function (gameInProgress) {
+            res.render('index', {username: user.displayName, gameID: gameInProgress});
+          });
+        }
+      } else {
+        res.render('index', {reCaptchaKey: reCaptchaData.PublicKey});
       }
     }
   });

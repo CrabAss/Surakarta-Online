@@ -223,7 +223,7 @@ router.get('/settings', function (req, res, next) {
     if (error) {
       return next(error);
     } else {
-      if (user !== null) {
+      if (user !== null && !user.isTemporary) {
         return res.render('user_settings', {user: user, countryList: countryList});
       } else {
         return res.redirect('/u/signin');
