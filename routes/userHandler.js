@@ -114,8 +114,8 @@ router.post('/signup', reCaptcha.middleware.verify, function(req, res, next) {
     req.body.birthyear,
     req.body.gender,
     req.body.country,
-    !!req.body.profileVisible,
-    !!req.body.shareLocation,
+    !!req.body.showProfile,
+    !!req.body.collectLocation,
     req.session.isTemporary ? req.session.username : null,
     function (unhandledErr, errMsg, user) {
       if (user) {
@@ -147,29 +147,30 @@ router.post('/signup/validate/username', function(req, res, next) {
           return next(err);
       } else {
         if (!user)
-          return res.send('available');
+          return res.sendStatus(200);
         else
-          return res.send('no');
+          return res.sendStatus(400);
       }
     });
   } else {
-    res.status(400).send('Bad Request');
+    res.sendStatus(403);
   }
 });
 
 
 router.get('/@:username', function (req, res, next) {
   // USER PROFILE PAGE
+  if (!req.session.userID || req.session.isTemporary) return res.redirect('/');
   User.findOne({ username: req.params.username })
     .collation({ locale: 'en', strength: 1 })
     .exec(function (err, user) {
       if (err)
         return next(err);
-      if (!user || user.isTemporary || !user.privacy.showProfile)
+      if (!user || user.isTemporary || (!user.privacy.showProfile && user._id.toString() !== req.session.userID))
         return res.send('User not found!');
       if (user.username !== req.params.username)
         return res.redirect("/u/@" + user.username);
-      // res.send(user._id);
+
       Game.aggregate([{
         $match: {'gameID': { $in: user.gameWin.concat(user.gameLose)}}
       }, {
@@ -223,7 +224,7 @@ router.get('/settings', function (req, res, next) {
       return next(error);
     } else {
       if (user !== null) {
-        return res.render('user_settings', {username: user.displayName});
+        return res.render('user_settings', {user: user, countryList: countryList});
       } else {
         return res.redirect('/u/signin');
       }
@@ -233,8 +234,42 @@ router.get('/settings', function (req, res, next) {
 
 router.post('/settings', function (req, res, next) {
   // change user properties (e.g. password)
-  // !!!!!!!!!!!! TO BE IMPLEMENTED
-  return res.send("");
+  if (req.body.type === "profile") {
+    User.updateProfile(
+      req.session.userID,
+      req.body.birthyear,
+      req.body.gender,
+      req.body.country,
+      req.body.showProfile,
+      req.body.collectLocation,
+      function (err) {
+        if (err) {
+          if (err.message === "User not found.")
+            return res.status(400).send(err.message);
+          else
+            return next(err);
+        }
+        return res.sendStatus(200);
+      }
+    );
+  } else if (req.body.type === "credential" && !!req.body.newPassword) {
+    User.updateCredential(
+      req.session.userID,
+      req.body.origPassword,
+      req.body.newPassword,
+      req.body.verifyPassword,
+      function (err) {
+        if (err) {
+          const EXPECTED_ERR = ["Current password is incorrect.", "User not found.", "Passwords don't match.", "New password should be a different one."];
+          if (EXPECTED_ERR.includes(err.message))
+            return res.status(400).send(err.message);
+          else
+            return next(err);
+        }
+        return res.sendStatus(200);
+      }
+    )
+  } else return res.status(400).send("Parameter missing.")
 });
 
 // GET for signout

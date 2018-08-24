@@ -6,29 +6,80 @@ html
     title User Settings - Surakarta
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css', integrity='sha256-Md8eaeo67OiouuXAi8t/Xpd8t2+IaJezATVTWbZqSOw=', crossorigin='anonymous')
     link(rel='stylesheet' href='/stylesheets/signup.css')
-    script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.slim.min.js', integrity='sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=', crossorigin='anonymous')
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous")
     script(src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/js/bootstrap.bundle.min.js', integrity='sha256-ko+X8xDY92jF49Uh47HOLP8Vb5zGDF0J+tdy9KLEP1I=', crossorigin='anonymous')
+    script(src='/javascripts/user_settings.js')
   body
     .user-body
       h1 User Settings
-      if error === true
-        .alert.alert-danger(role="alert")=errorMsg
-      form(method='post')
-        .form-group.row
-          label.col-sm-4.col-form-label(for='staticUsername') Username
-          .col-sm-8
-            input#staticUsername.form-control-plaintext(name='username' type='text' readonly value=username)
-        .form-group.row
-          label.col-sm-4.col-form-label(for='origPassword') Current Password
-          .col-sm-8
-            input#origPassword.form-control(name='password' type='password')
-        .form-group.row
-          label.col-sm-4.col-form-label(for='newPassword') New Password
-          .col-sm-8
-            input#newPassword.form-control(name='new_password' type='password')
-        .form-group.row
-          label.col-sm-4.col-form-label(for='verifyPassword') Verify Password
-          .col-sm-8
-            input#verifyPassword.form-control(name='verify_password' type='password')
-        button.btn.btn-primary.btn-block Save Changes
-        button.btn.btn-outline-danger.btn-block.mt-3(type='button' disabled) Delete this Account (coming soon)
+
+      ul.nav.nav-tabs.mb-3(role='tablist')
+        li.nav-item
+          a#profile-tab.nav-link.active(data-toggle='tab', href='#profile', role='tab', aria-controls='profile', aria-selected='true') Profile
+        li.nav-item
+          a#credential-tab.nav-link(data-toggle='tab', href='#credential', role='tab', aria-controls='credential', aria-selected='false') Credential
+      .alert.alert-danger.d-none(role="alert")
+      .alert.alert-success.d-none(role="alert")
+      .form-group.row
+        label.col-sm-4.col-form-label(for='staticUsername') Username
+        .col-sm-8
+          input#staticUsername.form-control-plaintext(name='username' type='text' readonly value=user.displayName)
+      .tab-content
+        #profile.tab-pane.fade.show.active(role='tabpanel', aria-labelledby='profile-tab')
+          form#profile-form(method='post')
+            input(type='hidden' name='type' value='profile')
+            #birthyear-container.form-group.row
+              label.col-sm-4.col-form-label(for='birthyear') Year of Birth
+              .col-sm-8
+                input#birthyear.form-control(name='birthyear' value=user.birthyear onblur="valBirthYear()")
+                .invalid-feedback You know, it's NOT your year of birth :-)
+            #gender-container.form-group.row
+              label.col-sm-4.col-form-label Gender
+              .col-sm-8
+                select#gender.form-control.custom-select(name='gender')
+                  option(value="" selected=!user.gender)
+                  option(value="0" selected=user.gender === 0) Female
+                  option(value="1" selected=user.gender === 1) Male
+                  option(value="2" selected=user.gender === 2) Other
+            .form-group.row
+              label.col-sm-4.col-form-label(for='country') Country/Region
+              .col-sm-8
+                select#country.form-control.custom-select(name='country' autocomplete='off')
+                  each item in countryList
+                    option(value=item.abbr selected=item.abbr === user.country)=item.name
+            .form-group.row
+              .col
+                .custom-control.custom-checkbox
+                  input#showProfile.custom-control-input(name='showProfile' type='checkbox' checked=user.privacy.showProfile)
+                  label.custom-control-label(for='showProfile') I agree to make my profile visible to other registered users.
+            .form-group.row
+              .col
+                .custom-control.custom-checkbox
+                  input#collectLocation.custom-control-input(name='collectLocation' type='checkbox' checked=user.privacy.collectLocation)
+                  label.custom-control-label(for='collectLocation') I agree to share my estimated location and display my profile on the Player Map.
+            button#submit-profile.btn.btn-primary.btn-block(type='button') Save Changes
+            //button.btn.btn-outline-danger.btn-block.mt-3(type='button' disabled) Delete this Account (coming soon)
+        #credential.tab-pane.fade(role='tabpanel', aria-labelledby='credential-tab')
+          form#credential-form(method='post')
+            input(type='hidden' name='type' value='credential')
+            .form-group.row
+              label.col-sm-4.col-form-label(for='origPassword') Current Password
+              .col-sm-8
+                input#origPassword.form-control(name='origPassword' type='password' onblur="valPassword('#origPassword')")
+                .invalid-feedback
+                .valid-feedback Looks good!
+            .form-group.row
+              label.col-sm-4.col-form-label(for='newPassword') New Password
+              .col-sm-8
+                input#newPassword.form-control(name='newPassword' type='password' onblur="valPassword('#newPassword')")
+                .invalid-feedback
+                .valid-feedback Looks good!
+            .form-group.row
+              label.col-sm-4.col-form-label(for='verifyPassword') Verify Password
+              .col-sm-8
+                input#verifyPassword.form-control(name='verifyPassword' type='password' onblur="valPassword('#verifyPassword')")
+                .invalid-feedback
+                .valid-feedback Looks good!
+            button#submit-credential.btn.btn-primary.btn-block(type='button') Update Password
+            button.btn.btn-outline-danger.btn-block.mt-3(type='button' disabled) Delete this Account (coming soon)
+

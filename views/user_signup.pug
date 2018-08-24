@@ -7,7 +7,7 @@ html
     link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha256-NJWeQ+bs82iAeoT5Ktmqbi3NXwxcHlfaVejzJI2dklU=" crossorigin="anonymous")
     link(rel='stylesheet' href='/stylesheets/signup.css')
     link(rel='stylesheet' href='/stylesheets/pace-flash.css')
-    script(src="https://www.google.com/recaptcha/api.js" async defer)
+    script(src="https://www.google.com/recaptcha/api.js?onload=onloadCallback" async defer)
     script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous")
     script(src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous")
     script(src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha256-C8oQVJ33cKtnkARnmeWp6SDChkU+u7KvsNMFUzkkUzk=" crossorigin="anonymous")
@@ -32,22 +32,14 @@ html
           #birthyear-container.form-group.col
             label(for='birthyear') Year of Birth
             input#birthyear.form-control(name='birthyear' onblur="valBirthYear()")
-            .invalid-feedback
-            .valid-feedback Looks good!
-          #gender-container.form-group.col-sm-auto
-            label Gender
-            .btn-group.btn-group-toggle(data-toggle="buttons" style='display: block')
-              label.btn.btn-outline-secondary(for='gd_female')
-                input#gd_female(name='gender' type='radio' value='0')
-                | Female
-              label.btn.btn-outline-secondary(for='gd_male')
-                input#gd_male(name='gender' type='radio' value='1')
-                | Male
-              label.btn.btn-outline-secondary(for='gd_other')
-                input#gd_other(name='gender' type='radio' value='2')
-                | Other
-            .invalid-feedback Please specify your gender.
-            .valid-feedback Looks good!
+            .invalid-feedback You know, it's NOT your year of birth :-)
+          #gender-container.form-group.col
+            label(for='gender') Gender
+            select#gender.form-control.custom-select(name='gender')
+              option(value="" selected)
+              option(value="0") Female
+              option(value="1") Male
+              option(value="2") Other
         .form-row
           .form-group.col
             label(for='country') Country/Region
@@ -57,15 +49,15 @@ html
         .form-row
           .form-group.col
             .custom-control.custom-checkbox
-              input#profileVisible.custom-control-input(name='profileVisible' type='checkbox' checked)
-              label.custom-control-label(for='profileVisible') I agree to make my profile visible to registered users.
+              input#showProfile.custom-control-input(name='showProfile' type='checkbox' checked)
+              label.custom-control-label(for='showProfile') I agree to make my profile visible to other registered users.
         .form-row
           .form-group.col
             .custom-control.custom-checkbox
-              input#shareLocation.custom-control-input(name='shareLocation' type='checkbox' checked)
-              label.custom-control-label(for='shareLocation') I agree to share my estimated location and display my profile on the Player Map.
+              input#collectLocation.custom-control-input(name='collectLocation' type='checkbox' checked)
+              label.custom-control-label(for='collectLocation') I agree to share my estimated location and display my profile on the Player Map.
         #recaptcha.g-recaptcha(data-sitekey=reCaptchaKey data-callback="onSubmit" data-size="invisible")
-        button#submitBtn.btn.btn-primary.btn-block(type='button' disabled) Sign Up
+        button#submitBtn.btn.btn-primary.btn-block(type='button' disabled) Loading...
         .alert.alert-secondary.mt-3(role="alert")
           | Already have an account?&nbsp;
           a.alert-link(href='/u/signin') Sign in

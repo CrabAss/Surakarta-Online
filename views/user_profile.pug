@@ -12,13 +12,13 @@ html
     .user-body
       h1=user.username
       dl.row
-        if user.gender
+        if user.gender !== null
           dt.col-sm-5 Gender
           dd.col-sm-7=user.displayGender
         if user.age >= 0
           dt.col-sm-5 Age
           dd.col-sm-7=user.age
-        if user.country
+        if user.country !== null
           dt.col-sm-5 Country / Region
           dd.col-sm-7=user.displayCountry
       hr

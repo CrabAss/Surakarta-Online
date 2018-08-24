@@ -58,7 +58,7 @@ UserSchema.virtual('displayName').get(function () {
 });
 
 UserSchema.virtual('displayGender').get(function () {
-  if (this.gender) return this.gender === 0 ? "Female" : (this.gender === 1 ? "Male" : "Other");
+  if (this.gender !== null) return this.gender === 0 ? "Female" : (this.gender === 1 ? "Male" : "Other");
   return "Unknown";
 });
 
@@ -70,7 +70,7 @@ UserSchema.virtual('displayCountry').get(function () {
 });
 
 UserSchema.virtual('age').get(function () {
-  if (this.birthyear) return (new Date()).getFullYear() - this.birthyear;
+  if (this.birthyear !== null) return (new Date()).getFullYear() - this.birthyear;
   return -1;
 });
 
@@ -213,7 +213,7 @@ UserSchema.methods.updateLocation = function (ll, callback) {
 
 UserSchema.statics.newUser = function (username, password, birthyear, gender, country,
                                        showProfile, collectLocation, sessionID, callback) {
-  if (username && password && country) {
+  if (username && password) {
     bcrypt.hash(password, 10, function (err, hashedPassword) {
       if (err) {
         return callback(err);
@@ -224,7 +224,7 @@ UserSchema.statics.newUser = function (username, password, birthyear, gender, co
         password: hashedPassword,
         birthyear: birthyear,
         gender: gender,
-        country: country,
+        country: country === "" ? null : country,
         location: null,
         privacy: {
           showProfile: showProfile,
@@ -234,7 +234,7 @@ UserSchema.statics.newUser = function (username, password, birthyear, gender, co
       if (sessionID) {
         User.findOneAndUpdate({username: sessionID}, {$set: userData}, {new: true}, function (err, user) {
           if (!err) {
-            console.log("TRANSFERRED!");
+            // console.log("TRANSFERRED!");
             return callback(null, null, user);
           } else {
             if (err.code === 11000)
@@ -246,7 +246,7 @@ UserSchema.statics.newUser = function (username, password, birthyear, gender, co
       } else {
         User.create(userData, function (err, user) {
           if (!err) {
-            console.log("CREATED!");
+            // console.log("CREATED!");
             return callback(null, null, user);
           }
           else {
@@ -281,6 +281,49 @@ UserSchema.statics.newTemporaryUser = function (sessionID, callback) {
         return callback(err);
     }
   });
+};
+
+UserSchema.statics.updateProfile = function (userID, birthyear, gender, country, showProfile, collectLocation, callback) {
+  User.findByIdAndUpdate(userID, {
+    birthyear: birthyear,
+    gender: gender,
+    country: country === "" ? null : country,
+    privacy: {
+      showProfile: !!showProfile,
+      collectLocation: !!collectLocation
+    }
+  }, function (err, user) {
+    if (err) return callback(err);
+    if (!user) return callback(new Error("User not found."));
+    if (user.privacy.collectLocation === false) {
+      User.update({_id: user._id}, {location: null}, function (err) {
+        if (err) return callback(err);
+      });
+    }
+    return callback();
+  });
+};
+
+UserSchema.statics.updateCredential = function (userID, origPassword, newPassword, verifyPassword, callback) {
+  User.findById(userID, function (err, user) {
+    if (err) return callback(err);
+    if (!user) return callback(new Error("User not found."));
+    bcrypt.compare(origPassword, user.password, function (err, result) {
+      if (result === true) {
+        if (newPassword !== origPassword) {
+          if (newPassword === verifyPassword) {
+            bcrypt.hash(newPassword, 10, function (err, hashedPassword) {
+              user.password = hashedPassword;
+              user.save(function (err) {
+                if (err) return callback(err);
+                return callback();
+              });
+            });
+          } else return callback(new Error("Passwords don't match."));
+        } else return callback(new Error("New password should be a different one."));
+      } else return callback(new Error("Current password is incorrect."));
+    })
+  })
 };
 
 let User = mongoose.model('User', UserSchema);
