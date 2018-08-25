@@ -61,6 +61,9 @@ $(document).ready(function () {
     alertModal.find('.modal-footer').remove();
     $('#alertModal').modal();
   });
-
+  socket.on('anonymous', function () {
+    $("#main-directive").text("Redirecting...");
+    location.reload(true);
+  });
 
 });

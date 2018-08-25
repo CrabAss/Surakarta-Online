@@ -22,20 +22,21 @@ module.exports = function(io, app, next) {
           console.log('Duplicate sockets for the same user: ' + socket.handshake.session.userID + '!');
           socket.emit('duplicate');
           hall.connected[socket.id].disconnect(true);
-        }
-        socket.emit('hello');
-        console.log('User "' + user.username + '" connected. ');
-        console.log('Number of Users:', hallUserIDs.length);
-        
-        if (hallUserIDs.length >= 2) {
-          // start a new game
-          console.log('New game creating!!!');
-          Game.newGame(hallUserIDs, function (err, game) {
-            if (err) return console.log(err);
-            hall.emit('new', {gameID: game.gameID});
-            console.log('New game created:', game.gameID);
-            hall.connected[socket.id].disconnect(true);
-          });
+        } else {
+          socket.emit('hello');
+          console.log('User "' + user.username + '" connected. ');
+          console.log('Number of Users:', hallUserIDs.length);
+
+          if (hallUserIDs.length >= 2) {
+            // start a new game
+            console.log('New game creating!!!');
+            Game.newGame(hallUserIDs, function (err, game) {
+              if (err) return console.log(err);
+              hall.emit('new', {gameID: game.gameID});
+              console.log('New game created:', game.gameID);
+              hall.connected[socket.id].disconnect(true);
+            });
+          }
         }
       } else {
         console.log('An anonymous user connected');
@@ -90,8 +91,9 @@ module.exports = function(io, app, next) {
             console.log('Duplicate sockets for the same user: ' + socket.handshake.session.userID +'!');
             socket.emit('duplicate');
             game.connected[socket.id].disconnect(true);
+          } else {
+            socket.emit('init', initData);
           }
-          socket.emit('init', initData);
         });
       });
     });
