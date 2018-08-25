@@ -21,7 +21,7 @@ function ifSignedIn(req, next, ifYes, ifNo) {
 
 router.get('/map', function(req, res, next) {
   ifSignedIn(req, next, function () {
-    res.render('stat_map');
+    res.render('stat/map');
   }, function () {
     res.redirect('/');
   })

@@ -54,10 +54,6 @@ $(document).ready(function () {
     $("#alter-directive").text("Redirecting...");
     window.location.replace(data.gameID);
   });
-  socket.on('anonymous', function () {
-    alertModal.find('.modal-body').text('Before playing Surakarta, please sign in first!');
-    alertModal.modal();
-  });
   socket.on('duplicate', function () {
     alertModal.find('.modal-body').text('We\'ve found that you are waiting for a game in another window. ' +
       'Please close this window to continue. \nIf you are actually not, ' +

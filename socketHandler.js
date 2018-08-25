@@ -11,58 +11,46 @@ module.exports = function(io, app, next) {
 
   hall.on('connection', function (socket) {
     User.findById(socket.handshake.session.userID).exec(function (error, user) {
-      if (error) {
-        return next(error);
-      } else {
-        if (user) {  // user with identity
-          user.getGameInProgress(function (gameInProgress) {
-            if (gameInProgress) {
-              console.log('User "' + user.username + '" redirected to ', gameInProgress ,'. ');
-              socket.emit('new', {gameID: gameInProgress});
-            } else {
-              let hallSockets = [];
-              for (let i in hall.connected)
-                if (hall.connected.hasOwnProperty(i))
-                  if (i !== socket.id) hallSockets.push(i);
-              hallSockets.forEach(function (existingSocket) {
-                if (hall.connected[existingSocket].handshake.session.userID === socket.handshake.session.userID) {
-                  console.log('Duplicate sockets for the same user: ' + socket.handshake.session.userID +'!');
-                  socket.emit('duplicate');
-                  hall.connected[socket.id].disconnect(true);
-                }
-              });
-              console.log('User "' + user.username + '" connected. ');
-              socket.emit('hello', { username: user.displayName });
-
-              console.log('Number of Users:', Object.keys(hall.connected).length);
-              if (Object.keys(hall.connected).length >= 2)  {
-                console.log('Matching!!!!');
-                // start a new game
-                let hallUserID = [];
-                for (let i in hall.connected)
-                  if (hall.connected.hasOwnProperty(i))
-                    hallUserID.push(hall.connected[i].handshake.session.userID);
-                Game.newGame(hallUserID, function (err, game) {
-                  if (err) return console.log(err);
-                  hall.emit('new', {gameID: game.gameID});
-                  console.log('New game created:', game.gameID);
-                  hall.connected[socket.id].disconnect(true);
-                });
-              }
-            }
-          });
-        } else {
-          console.log('An anonymous user connected');
-          socket.emit('anonymous');
+      if (error) return next(error);
+      if (user) {
+        // Search for duplication
+        let hallUserIDs = [];
+        for (let e in hall.connected)
+          if (hall.connected.hasOwnProperty(e))
+            hallUserIDs.push(hall.connected[e].handshake.session.userID);
+        if (hallUserIDs.filter(e => e === socket.handshake.session.userID).length > 1) {
+          console.log('Duplicate sockets for the same user: ' + socket.handshake.session.userID + '!');
+          socket.emit('duplicate');
           hall.connected[socket.id].disconnect(true);
         }
+        socket.emit('hello');
+        console.log('User "' + user.username + '" connected. ');
+        console.log('Number of Users:', hallUserIDs.length);
+        
+        if (hallUserIDs.length >= 2) {
+          // start a new game
+          console.log('New game creating!!!');
+          Game.newGame(hallUserIDs, function (err, game) {
+            if (err) return console.log(err);
+            hall.emit('new', {gameID: game.gameID});
+            console.log('New game created:', game.gameID);
+            hall.connected[socket.id].disconnect(true);
+          });
+        }
+      } else {
+        console.log('An anonymous user connected');
+        socket.emit('anonymous');
+        hall.connected[socket.id].disconnect(true);
       }
     });
 
     socket.on('disconnect', function (reason) {
-      console.log('socket disconnected because of', reason);
+      console.log('Socket disconnected because of', reason);
     });
   });
+
+
+
 
   game.on('connection', function (socket) {
     User.findById(socket.handshake.session.userID).exec(function (error, user) {
@@ -94,18 +82,15 @@ module.exports = function(io, app, next) {
         // console.log('initData:', initData);
         socket.join(msg.gameID, function () {
           // reject multiple sockets for same user
-          let roomSockets = [];
-          for (let i in game.connected)
-            if (game.connected.hasOwnProperty(i))
-              if (game.connected[i].rooms[msg.gameID] && i !== socket.id)
-                roomSockets.push(i);
-          roomSockets.forEach(function (existingSocket) {
-            if (game.connected[existingSocket].handshake.session.userID === socket.handshake.session.userID) {
-              console.log('Duplicate sockets for the same user: ' + socket.handshake.session.userID +'!');
-              socket.emit('duplicate');
-              game.connected[socket.id].disconnect(true);
-            }
-          });
+          let roomUserIDs = [];
+          for (let e in game.connected)
+            if (game.connected.hasOwnProperty(e) && game.connected[e].rooms[msg.gameID]) 
+              roomUserIDs.push(game.connected[e].handshake.session.userID);
+          if (roomUserIDs.filter(e => e === socket.handshake.session.userID).length > 1) {
+            console.log('Duplicate sockets for the same user: ' + socket.handshake.session.userID +'!');
+            socket.emit('duplicate');
+            game.connected[socket.id].disconnect(true);
+          }
           socket.emit('init', initData);
         });
       });
@@ -170,7 +155,6 @@ module.exports = function(io, app, next) {
           console.log('Surrendered!!! Winner:', winner);
           game.connected[socket.id].disconnect(true);
         });
-
       });
     });
 
@@ -196,7 +180,7 @@ module.exports = function(io, app, next) {
           });
         });
       }
-      console.log('socket disconnected because of', reason);
+      console.log('Socket disconnected because of', reason);
     });
   });
 

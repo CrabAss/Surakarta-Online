@@ -5,16 +5,15 @@ html
     meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
     title Surakarta
     link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha256-NJWeQ+bs82iAeoT5Ktmqbi3NXwxcHlfaVejzJI2dklU=" crossorigin="anonymous")
-    link(rel='stylesheet' href='/stylesheets/signup.css')
-    link(rel='stylesheet' href='/stylesheets/pace-flash.css')
+    link(rel='stylesheet' href='/css/user/signup.css')
+    link(rel='stylesheet' href='/css/pace-flash.css')
     if !username
       script(src="https://www.google.com/recaptcha/api.js" async defer)
-      script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous")
       script.
         function onSubmit() {
-          $("form").submit();
+          document.getElementById("recaptchaForm").submit()
         }
-    script(src='/javascripts/pace.min.js')
+    script(src='/js/pace.min.js')
   body
     .user-body.d-flex.flex-column.justify-content-center
       .main-logo.mx-auto.mt-5.mb-1
@@ -34,7 +33,7 @@ html
         a.btn.btn-secondary.my-2(href='/u/signout') Sign Out
       else
         h1.text-center.my-4 Welcome to Surakarta!
-        form(method="post" action="/g/hall")
+        form#recaptchaForm(method="post" action="/g/hall")
           button.btn.btn-primary.btn-block.btn-lg.my-2.g-recaptcha(data-sitekey=reCaptchaKey data-callback='onSubmit') Play Now!
         a.btn.btn-primary.my-2(href='/u/signup') Sign Up
         a.btn.btn-secondary.my-2(href='/u/signin') Sign In

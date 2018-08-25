@@ -29,16 +29,16 @@ function ifSignedIn(req, next, ifYes, ifNo) {
 router.get('/signin', function(req, res, next) {
   ifSignedIn(req, next, function () {
     if (req.session.isTemporary) {
-      res.render('user_signin', {reCaptchaKey: reCaptchaData.PublicKey}); // TODO - different UX
+      res.render('user/signin', {reCaptchaKey: reCaptchaData.PublicKey}); // TODO - different UX
     } else return res.redirect('/');
   }, function () {
-    res.render('user_signin', {reCaptchaKey: reCaptchaData.PublicKey});
+    res.render('user/signin', {reCaptchaKey: reCaptchaData.PublicKey});
   });
 });
 
 router.post('/signin', reCaptcha.middleware.verify, function(req, res, next) {
   if (req.session.userID && !req.session.isTemporary) return res.redirect('/');
-  if (req.recaptcha.error) return res.render('user_signin', {
+  if (req.recaptcha.error) return res.render('user/signin', {
     reCaptchaKey: reCaptchaData.PublicKey,
     error: true,
     errorMsg: 'reCAPTCHA verification failed. Please wait until the module of reCAPTCHA is loaded. '
@@ -48,14 +48,14 @@ router.post('/signin', reCaptcha.middleware.verify, function(req, res, next) {
   if (req.body.username && req.body.password) {
     User.authenticate(req.body.username, req.body.password, function (error, user) {
       if (error && error.status === 401) {
-        return res.render('user_signin', {
+        return res.render('user/signin', {
           reCaptchaKey: reCaptchaData.PublicKey,
           error: true,
           errorMsg: 'This user does not exist. Please try again. '
         });
       } else if (!user || error) {
         console.log(user);
-        return res.render('user_signin', {
+        return res.render('user/signin', {
           reCaptchaKey: reCaptchaData.PublicKey,
           error: true,
           errorMsg: 'Username or password is incorrect. Please try again. '
@@ -77,7 +77,7 @@ router.post('/signin', reCaptcha.middleware.verify, function(req, res, next) {
       }
     });
   } else {
-    return res.render('user_signin', {
+    return res.render('user/signin', {
       reCaptchaKey: reCaptchaData.PublicKey,
       error: true,
       errorMsg: 'All fields are required. Please try again. '
@@ -90,14 +90,14 @@ router.get('/signup', function(req, res, next) {
   ifSignedIn(req, next, function () {
     if (req.session.isTemporary) {
       let ipCountry = req.headers['cf-ipcountry'] || geoip.lookup(req.ip || req.connection.remoteAddress).country;
-      res.render('user_signup', {
+      res.render('user/signup', {
         countryList: countryList,
         countryDefault: ipCountry,
         reCaptchaKey: reCaptchaData.PublicKey});  // TODO - different UX
     } else return res.redirect('/');
   }, function () {
     let ipCountry = req.headers['cf-ipcountry'] || geoip.lookup(req.ip || req.connection.remoteAddress).country;
-    res.render('user_signup', {
+    res.render('user/signup', {
       countryList: countryList,
       countryDefault: ipCountry,
       reCaptchaKey: reCaptchaData.PublicKey});
@@ -213,7 +213,7 @@ router.get('/@:username', function (req, res, next) {
         for (let i = 0; i < games.length; i++) {
           games[i].opponent = games[i].opponent.isTemporary ? null : games[i].opponent.username;
         }
-        res.render("user_profile", {user: user, games: games});
+        res.render("user/profile", {user: user, games: games});
       });
     });
 });
@@ -224,7 +224,7 @@ router.get('/settings', function (req, res, next) {
       return next(error);
     } else {
       if (user !== null && !user.isTemporary) {
-        return res.render('user_settings', {user: user, countryList: countryList});
+        return res.render('user/settings', {user: user, countryList: countryList});
       } else {
         return res.redirect('/u/signin');
       }
