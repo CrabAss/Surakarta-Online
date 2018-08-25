@@ -23,8 +23,8 @@ window.geo_callback = function(results) {
       clickable: true
     });
     marker.info = new google.maps.InfoWindow({
-      content: '<b>User: </b>' + results.features[i].properties.name
-      + '<br><b>Wins: </b>' + results.features[i].properties.countWin
+      content: '<b>User: </b><a href="/u/@' + results.features[i].properties.name + '">' + results.features[i].properties.name
+      + '</a><br><b>Wins: </b>' + results.features[i].properties.countWin
     });
 
     google.maps.event.addListener(marker, 'click', function() {

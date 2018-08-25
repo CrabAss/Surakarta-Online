@@ -174,7 +174,7 @@ UserSchema.statics.claimTempAccount = function (fromUserID, toUserID, callback) 
   let fromGames = [];
 
   // COMBINE
-  User.findByIdAndDelete(fromUserID, function (err, fromUser) {
+  User.findByIdAndRemove(fromUserID, function (err, fromUser) {
     fromGames = fromUser.gameWin.concat(fromUser.gameLose);
     User.findById(toUserID, function (err, toUser) {
       if (ifIntersect(fromGames, toUser.gameWin.concat(toUser.gameLose))) {
