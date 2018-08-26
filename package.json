@@ -1,13 +1,13 @@
 {
-  "name": "COMP3421-A2-Q1",
-  "version": "0.0.0",
-  "author": "ZHANG Hanyu (16097165D)",
+  "name": "Surakarta-Online",
+  "version": "0.2.0",
+  "author": "CrabAss",
   "private": true,
   "scripts": {
     "start": "node ./bin/www"
   },
   "dependencies": {
-    "bcrypt": "^2.0.0",
+    "bcrypt": "^3.0.0",
     "body-parser": "~1.18.2",
     "connect-mongo": "^2.0.1",
     "cookie-parser": "~1.4.3",
@@ -21,10 +21,10 @@
     "geojson": "^0.5.0",
     "mongoose": "^5.0.14",
     "morgan": "~1.9.0",
-    "npm": "^5.7.1",
+    "npm": "^6.4.0",
     "pug": "^2.0.1",
     "serve-favicon": "^2.5.0",
-    "shortid": "^2.2.8",
-    "socket.io": "^2.1.0"
+    "shortid": "^2.2.13",
+    "socket.io": "^2.1.1"
   }
 }
