@@ -1,6 +1,8 @@
 # Surakarta Online
-Realtime game hosting of Surakarta using Node.js. 
-This project is still in alpha phase. 
+Realtime game hosting of Surakarta using Node.js. This project is still in alpha phase. 
+
+## Game instruction
+Please refer to [Surakarta (game)](https://en.wikipedia.org/wiki/Surakarta_(game)).
 
 ## Features
 * WebSocket technology is used to implement the real-time updating of game status between the server and the client;
@@ -13,4 +15,3 @@ Please refer to [Roadmap #1](https://github.com/CrabAss/Surakarta-Online/project
 
 ## Tips of installation
 * In order to display flag icons correctly, a symlink should be created manually from `node_modules/flag-icon-css` to `public/flag`. 
-
