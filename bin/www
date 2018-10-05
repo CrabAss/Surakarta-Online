@@ -26,7 +26,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 let app = require('../app');
-let debug = require('debug')('comp3421-a2-q1:server');
+let debug = require('debug')('Surakarta-Online:server');
 let http = require('http');
 
 /**
