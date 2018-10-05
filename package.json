@@ -2,7 +2,7 @@
   "name": "Surakarta-Online",
   "version": "0.2.0",
   "author": "CrabAss",
-  "license": "GPL-3.0-only",
+  "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/CrabAss/Surakarta-Online#readme",
   "bugs": { 
     "url" : "https://github.com/CrabAss/Surakarta-Online/issues"
