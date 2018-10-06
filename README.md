@@ -15,3 +15,4 @@ Please refer to [Roadmap #1](https://github.com/CrabAss/Surakarta-Online/project
 
 ## Tips of installation
 * In order to display flag icons correctly, a symlink should be created manually from `node_modules/flag-icon-css` to `public/flag`. 
+* The HTTP server runs on port `2100` by default. You may change it in `bin/www`.
