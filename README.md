@@ -14,5 +14,6 @@ Please refer to [Surakarta (game)](https://en.wikipedia.org/wiki/Surakarta_(game
 Please refer to [Roadmap #1](https://github.com/CrabAss/Surakarta-Online/projects/1).
 
 ## Tips of installation
+* Node.js and MongoDB should be installed in advance. 
 * In order to display flag icons correctly, a symlink should be created manually from `node_modules/flag-icon-css` to `public/flag`. 
 * The HTTP server runs on port `2100` by default. You may change it in `bin/www`.
