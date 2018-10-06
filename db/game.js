@@ -268,7 +268,6 @@ GameSchema.methods.moveStep = function (oldPos, newPos, timeUsed, callback) {
 };
 
 GameSchema.statics.newGame = function (users, callback) {
-  const gameID = shortId.generate();
   let playerB, playerW, playerFirst;
   if (Math.random() * 2 >= 1) {
     playerB = users[0]; playerW = users[1];
