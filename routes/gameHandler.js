@@ -1,3 +1,24 @@
+/*
+
+Surakarta-Online: Realtime game hosting of Surakarta using Node.js
+Copyright (C) 2018 CrabAss
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
+
 let express = require('express');
 let router = express.Router();
 let User = require('../db/user');
@@ -12,42 +33,42 @@ let libReCaptcha = require('express-recaptcha').Recaptcha;
 let reCaptcha = new libReCaptcha(reCaptchaData.PublicKey, reCaptchaData.Secret);
 
 router.get('/', function (req, res, next) {
-  return res.redirect("/g/hall");
+    return res.redirect("/g/hall");
 });
 
 router.get('/hall', function (req, res, next) {
-  User.findById(req.session.userID).exec(function (error, user) {
-    if (error) return next(error);
-    if (user !== null) {
-      user.getGameInProgress(function (gameInProgress) {
-        if (gameInProgress)
-          res.redirect('/g/' + gameInProgress);
-        else
-          res.render('game/hall');
-      });
-    } else return res.render("user/recaptcha", {reCaptchaKey: reCaptchaData.PublicKey});
-  });
+    User.findById(req.session.userID).exec(function (error, user) {
+        if (error) return next(error);
+        if (user !== null) {
+            user.getGameInProgress(function (gameInProgress) {
+                if (gameInProgress)
+                    res.redirect('/g/' + gameInProgress);
+                else
+                    res.render('game/hall');
+            });
+        } else return res.render("user/recaptcha", {reCaptchaKey: reCaptchaData.PublicKey});
+    });
 });
 
 router.post('/hall', reCaptcha.middleware.verify, function (req, res, next) {
-  if (req.session.userID) return res.redirect("hall");
-  if (req.recaptcha.error) return res.status(400).send("reCAPTCHA verification failed.");
+    if (req.session.userID) return res.redirect("hall");
+    if (req.recaptcha.error) return res.status(400).send("reCAPTCHA verification failed.");
 
-  // create anonymous user and join
-  User.newTemporaryUser(req.session.id, function (unhandledErr, errMsg, user) {
-    if (user) {
-      req.session.userID = user._id;
-      req.session.username = user.username;
-      req.session.isTemporary = true;
-      res.render('game/hall');
-    } else {
-      if (errMsg) return res.send(errMsg);
-      else {
-        // console.log(unhandledErr);
-        return next(unhandledErr);
-      }
-    }
-  });
+    // create anonymous user and join
+    User.newTemporaryUser(req.session.id, function (unhandledErr, errMsg, user) {
+        if (user) {
+            req.session.userID = user._id;
+            req.session.username = user.username;
+            req.session.isTemporary = true;
+            res.render('game/hall');
+        } else {
+            if (errMsg) return res.send(errMsg);
+            else {
+                // console.log(unhandledErr);
+                return next(unhandledErr);
+            }
+        }
+    });
 
 });
 
@@ -57,16 +78,16 @@ router.post('/hall', reCaptcha.middleware.verify, function (req, res, next) {
 });*/
 
 router.get('/:gameID', function (req, res, next) {
-  Game.findOne({
-    gameID: req.params.gameID,
-    $or: [
-      { "playerB.userID": req.session.userID },
-      { "playerW.userID": req.session.userID }
-    ]}, function (err, game) {
-    if (!game) return res.redirect('/g/hall');
-    if (game.status === "InProgress") return res.render("game/play");
-    res.send("This game is finished!");  // TO BE IMPLEMENTED: game playback
-  });
+    Game.findOne({
+        gameID: req.params.gameID,
+        $or: [
+            { "playerB.userID": req.session.userID },
+            { "playerW.userID": req.session.userID }
+        ]}, function (err, game) {
+        if (!game) return res.redirect('/g/hall');
+        if (game.status === "InProgress") return res.render("game/play");
+        res.send("This game is finished!");  // TO BE IMPLEMENTED: game playback
+    });
 });
 
 module.exports = router;

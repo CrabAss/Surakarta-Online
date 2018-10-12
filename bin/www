@@ -33,7 +33,7 @@ let http = require('http');
  * Get port from environment and store in Express.
  */
 
-let port = normalizePort(process.env.PORT || '2100'); // COMP3421 A2 Q1
+let port = normalizePort(process.env.PORT || '2100');
 app.set('port', port);
 app.disable('x-powered-by');
 

@@ -25,25 +25,27 @@ html
       dl.row
         dt.col-sm-5 Completed Games
         dd.col-sm-7=user.gameCount
-        dt.col-sm-5 Winning Percentage
-        dd.col-sm-7=(user.winningPercentage * 100).toFixed(2) + '%'
-      table.table.table-hover
-        thead
-          tr
-            th(scope='col') Game ID
-            th(scope='col') Opponent
-            th(scope='col') Moves
-            //th(scope='col') Start Time
-            th(scope='col') Result
-        tbody
-          each game in games
+        if user.gameCount > 0
+          dt.col-sm-5 Winning Percentage
+          dd.col-sm-7=(user.winningPercentage * 100).toFixed(2) + '%'
+      if user.gameCount > 0
+        table.table.table-hover
+          thead
             tr
-              th(scope='row')=game.gameID
-              td
-                if game.opponent
-                  a(href="/u/@" + game.opponent)=game.opponent
-                else
-                  | Guest
-              td=game.totalMoves
-              //td=game.startTime
-              td=game.isWin ? "Win" : "Lose"
+              th(scope='col') Game ID
+              th(scope='col') Opponent
+              th(scope='col') Moves
+              //th(scope='col') Start Time
+              th(scope='col') Result
+          tbody
+            each game in games
+              tr
+                th(scope='row')=game.gameID
+                td
+                  if game.opponent
+                    a(href="/u/@" + game.opponent)=game.opponent
+                  else
+                    | Guest
+                td=game.totalMoves
+                //td=game.startTime
+                td=game.isWin ? "Win" : "Lose"

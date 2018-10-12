@@ -1,3 +1,24 @@
+/*
+
+Surakarta-Online: Realtime game hosting of Surakarta using Node.js
+Copyright (C) 2018 CrabAss
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+*/
+
+
 let express = require('express');
 let router = express.Router();
 let User = require('../db/user');
@@ -10,25 +31,25 @@ let reCaptchaData = require('../static_data/recaptcha');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  User.findById(req.session.userID).exec(function (error, user) {
-    if (error) {
-      return next(error);
-    } else {
-      if (user !== null) {
-        if (user.isTemporary) {
-          user.getGameInProgress(function (gameInProgress) {
-            res.render('index', {username: user.displayName, gameID: gameInProgress, isTemporary: true});
-          });
+    User.findById(req.session.userID).exec(function (error, user) {
+        if (error) {
+            return next(error);
         } else {
-          user.getGameInProgress(function (gameInProgress) {
-            res.render('index', {username: user.displayName, gameID: gameInProgress});
-          });
+            if (user !== null) {
+                if (user.isTemporary) {
+                    user.getGameInProgress(function (gameInProgress) {
+                        res.render('index', {username: user.displayName, gameID: gameInProgress, isTemporary: true});
+                    });
+                } else {
+                    user.getGameInProgress(function (gameInProgress) {
+                        res.render('index', {username: user.displayName, gameID: gameInProgress});
+                    });
+                }
+            } else {
+                res.render('index', {reCaptchaKey: reCaptchaData.PublicKey});
+            }
         }
-      } else {
-        res.render('index', {reCaptchaKey: reCaptchaData.PublicKey});
-      }
-    }
-  });
+    });
 });
 
 module.exports = router;
