@@ -15,7 +15,7 @@ Please refer to [Roadmap #1](https://github.com/CrabAss/Surakarta-Online/project
 
 ## Tips of installation
 * [Node.js](https://nodejs.org/en/download/package-manager/) and [MongoDB](https://docs.mongodb.com/manual/administration/install-community/) should be installed in advance. 
-* HTTP server runs on port `2100` by default. You may change it in `bin/www`.
+* HTTP server runs on port `2100` by default. You may change it in `bin/www`([here](/bin/www#L36)).
 * In order to display flag icons correctly, a symlink should be created manually from `node_modules/flag-icon-css` to `public/flag`. 
 * Please replace the API key of [Google Maps](https://developers.google.com/maps/documentation/javascript/tutorial) with your own key in `views/stat/map.pug`.
 * [Google reCAPTCHA](https://developers.google.com/recaptcha/docs/invisible) is integrated in this software. Please create a new file as `static_data/recaptcha.json` with following content: 
