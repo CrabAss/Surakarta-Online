@@ -22,6 +22,7 @@ Please refer to [Roadmap #1](https://github.com/CrabAss/Surakarta-Online/project
   ```json
   {"PublicKey": "[YOUR PUBLIC KEY]", "Secret": "[YOUR SECRET KEY]"}
   ```
+* Please replace the value of `global.DOMAIN_ROOT` with your own hostname in `app.js` ([here](/app.js#L39)). This global constant is to prevent the abuse of the APIs.
 
 ## License
 Surakarta Online is licensed under the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version. For details, please refer to `COPYING`.
