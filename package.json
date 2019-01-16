@@ -2,13 +2,14 @@
   "name": "surakarta-online",
   "version": "0.2.0",
   "author": "CrabAss",
-  "license": "GPL-3.0-or-later",
+  "license": "AGPL-3.0-or-later",
   "homepage": "https://github.com/CrabAss/Surakarta-Online#readme",
   "bugs": { 
     "url" : "https://github.com/CrabAss/Surakarta-Online/issues"
   },
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "postinstall": "ln -s node_modules/flag-icon-css public/flag"
   },
   "dependencies": {
     "bcrypt": "^3.0.0",
