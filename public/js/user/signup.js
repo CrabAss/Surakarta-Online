@@ -18,112 +18,105 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
+let isValidating = false
 
-let isValidating = false;
-
-function onloadCallback() { // reCAPTCHA
-    let submitBtn = $("#submitBtn");
-    submitBtn.removeAttr("disabled").text("Sign Up");
+function onloadCallback () { // reCAPTCHA
+  let submitBtn = $('#submitBtn')
+  submitBtn.removeAttr('disabled').text('Sign Up')
 }
 
-function onSubmit() {
-    let submitBtn = $("#submitBtn");
-    submitBtn.prop("disabled", true).text("Processing...");
-    $.post("", $("#signup-form").serialize(), function(data){
-        if (~data.indexOf("success"))
-            submitSuccess();
-        else
-            submitFailed(data);
-    }).fail(function() {
-        submitFailed();
-    });
+function onSubmit () {
+  let submitBtn = $('#submitBtn')
+  submitBtn.prop('disabled', true).text('Processing...')
+  $.post('', $('#signup-form').serialize(), data => {
+    if (~data.indexOf('success'))
+      submitSuccess()
+    else
+      submitFailed(data)
+  }).fail(() => submitFailed())
 }
 
-function valUsername(calledBySubmitBtn) {
-    if (isValidating === true) return;
+function valUsername (calledBySubmitBtn) {
+  if (isValidating === true) return
 
-    let username_field = $("#username");
-    let err_text = $("#username-container").find(".invalid-feedback");
+  let username_field = $('#username')
+  let err_text = $('#username-container').find('.invalid-feedback')
 
-    if (username_field.val().length < 3) {
-        username_field.removeClass("is-valid").addClass("is-invalid");
-        if (username_field.val().length === 0)
-            err_text.text("The username is required. ");
-        else
-            err_text.text("The username is too short. ");
-        return false;
+  if (username_field.val().length < 3) {
+    username_field.removeClass('is-valid').addClass('is-invalid')
+    if (username_field.val().length === 0)
+      err_text.text('The username is required. ')
+    else
+      err_text.text('The username is too short. ')
+    return false
+  }
+
+  isValidating = true
+  if (!calledBySubmitBtn) username_field.removeClass('is-valid is-invalid')
+  $.post('/u/signup/validate/username', { username: username_field.val() }, () => {
+    username_field.removeClass('is-invalid').addClass('is-valid')
+    if (calledBySubmitBtn === true) valForm(true)
+  }).fail(xhr => {
+    username_field.removeClass('is-valid').addClass('is-invalid')
+    if (xhr.status === 400)
+      err_text.text('This username has been used. ')
+    else
+      err_text.text('Unknown error occurred. ')
+    if (calledBySubmitBtn === true) valForm(false)
+  }).always(() => isValidating = false)
+}
+
+function valPassword () {
+  let password_field = $('#password')
+  if (password_field.val().length < 6) {
+    password_field.removeClass('is-valid').addClass('is-invalid')
+    return false
+  } else {
+    password_field.removeClass('is-invalid').addClass('is-valid')
+    return true
+  }
+}
+
+function valBirthYear () {
+  let birthyear_field = $('#birthyear')
+  if (birthyear_field.val().length === 0) {
+    birthyear_field.removeClass('is-invalid')
+    return true
+  } else if ($.isNumeric(birthyear_field.val()) && parseInt(birthyear_field.val()) > 1900 && parseInt(birthyear_field.val()) <= (new Date()).getFullYear()) {
+    birthyear_field.removeClass('is-invalid')
+    return true
+  } else {
+    birthyear_field.addClass('is-invalid')
+    return false
+  }
+}
+
+function valForm (usernameValResult) {
+  if (usernameValResult === undefined) {
+    if (valUsername(true) === false) {
+      valPassword()
+      valBirthYear()
     }
-
-    isValidating = true;
-    if (!calledBySubmitBtn) username_field.removeClass("is-valid is-invalid");
-    $.post("/u/signup/validate/username", { username: username_field.val() }, function () {
-        username_field.removeClass("is-invalid").addClass("is-valid");
-        if (calledBySubmitBtn === true) valForm(true);
-    }).fail(function (xhr) {
-        username_field.removeClass("is-valid").addClass("is-invalid");
-        if (xhr.status === 400)
-            err_text.text("This username has been used. ");
-        else
-            err_text.text("Unknown error occurred. ");
-        if (calledBySubmitBtn === true) valForm(false);
-    }).always(function () {
-        isValidating = false;
-    });
-}
-
-function valPassword() {
-    let password_field = $("#password");
-    if (password_field.val().length < 6) {
-        password_field.removeClass("is-valid").addClass("is-invalid");
-        return false;
-    } else {
-        password_field.removeClass("is-invalid").addClass("is-valid");
-        return true;
+  } else {
+    if ([usernameValResult, valPassword(), valBirthYear()].every(Boolean) === true) {
+      // avoid short-circuit evaluation
+      grecaptcha.execute()
     }
+  }
 }
 
-function valBirthYear() {
-    let birthyear_field = $("#birthyear");
-    if (birthyear_field.val().length === 0) {
-        birthyear_field.removeClass("is-invalid");
-        return true;
-    } else if ($.isNumeric(birthyear_field.val()) && parseInt(birthyear_field.val()) > 1900 && parseInt(birthyear_field.val()) <= (new Date()).getFullYear()) {
-        birthyear_field.removeClass("is-invalid");
-        return true;
-    } else {
-        birthyear_field.addClass("is-invalid");
-        return false;
-    }
+function submitSuccess () {
+  $('#signup-form').remove()
+  $('.alert-success').removeAttr('style')
 }
 
-function valForm(usernameValResult) {
-    if (usernameValResult === undefined) {
-        if (valUsername(true) === false) {
-            valPassword();
-            valBirthYear();
-        }
-    } else {
-        if ([usernameValResult, valPassword(), valBirthYear()].every(Boolean) === true) {
-            // avoid short-circuit evaluation
-            grecaptcha.execute();
-        }
-    }
+function submitFailed (data) {
+  alert('Failed!')
+  if (data) alert(data)
+  grecaptcha.reset()
+  onloadCallback()
 }
 
-function submitSuccess() {
-    $("#signup-form").remove();
-    $(".alert-success").removeAttr("style");
-}
-
-function submitFailed(data) {
-    alert("Failed!");
-    if (data) alert(data);
-    grecaptcha.reset();
-    onloadCallback();
-}
-
-$(document).ready(function() {
-    $("#submitBtn").click(function() {
-        valForm();
-    });
-});
+$(document).ready(function () {
+  $('#submitBtn').click(() => valForm())
+})
