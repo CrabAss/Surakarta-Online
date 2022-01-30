@@ -1,7 +1,37 @@
 # Surakarta Online
 Realtime game hosting of Surakarta using Node.js. This project is still under development. 
 
-## Features
+## Features in a glance
+
+### Gameplay between Registered User and Anonymous User
+* Any user can play Surakarta without registering an account.
+* However, an anonymous user will automatically surrender the game if he/she leaves the game.
+* Users can know where to move and which chess piece to attack when he/she drags a chess piece.
+* The opponent's latest move is clearly shown on the game board.
+<p align="center">
+  <img src="./README-gifs/play.gif" alt="animated" />
+</p>
+
+### Inherit Game Records & Gameplay between Registered Users
+* If an anonymous user previously has played a Surakarta game, he/she can register an account to inherit his/her game records.
+* Registered users can easily return to game if he/she accidentally left the game.
+<p align="center">
+  <img src="./README-gifs/inherit_game.gif" alt="animated" />
+</p>
+
+### User Settings
+<p align="center">
+  <img src="./README-gifs/settings.gif" alt="animated" />
+</p>
+
+### Player Map
+* Users can choose not to disclose his/her location on the map.
+<p align="center">
+  <img src="./README-gifs/map.gif" alt="animated" />
+</p>
+
+
+## Tech Stacks
 * WebSocket is used to implement the real-time update of game status between the server and the clients;
 * The back-end part of this web-based game is implemented using Node.js. The back-end program is designed to host multiple in-progress games simultaneously. Error prevention is well implemented as well to detect and intercept any cheating request;
 * The game board in the front-end part is rendered by paper.js; 
