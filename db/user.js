@@ -18,12 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
-let mongoose = require('mongoose')
-let Game = require('./game')
-let bcrypt = require('bcrypt')
-let countryList = require('../static_data/country')
+const mongoose = require('mongoose')
+const Game = require('./game')
+const bcrypt = require('bcrypt')
+const countryList = require('../static_data/country')
 
-let UserPrivacySchema = new mongoose.Schema({
+const UserPrivacySchema = new mongoose.Schema({
   showProfile: {
     type: Boolean,
     required: true,
@@ -36,7 +36,7 @@ let UserPrivacySchema = new mongoose.Schema({
   }
 })
 
-let UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
   isTemporary: {
     type: Boolean,
     required: true,
@@ -50,13 +50,13 @@ let UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: function () {return !this.isTemporary}  // false when temporary
+    required: function () { return !this.isTemporary } // false when temporary
   },
   birthyear: {
     type: Number
   },
   gender: {
-    type: Number  // 0 for female, 1 for male, 2 for other
+    type: Number // 0 for female, 1 for male, 2 for other
   },
   country: {
     type: String
@@ -115,13 +115,17 @@ UserSchema.methods.getGameInProgress = function (callback) {
       { 'playerB.userID': this._id },
       { 'playerW.userID': this._id }
     ]
-  }, (err, game) => callback(game ? game.gameID : ''))
+  }, (err, game) => {
+    if (err) return callback(err)
+    return callback(game ? game.gameID : '')
+  })
 }
 
 UserSchema.statics.updateGameRecord = function (gameID, winner, loser, callback) {
   this.findById(winner, (err, user) => {
+    if (err) return callback(err)
     if (!user) {
-      let err = new Error('User not found.')
+      const err = new Error('User not found.')
       err.status = 404
       console.log(err)
       return callback(err)
@@ -132,8 +136,9 @@ UserSchema.statics.updateGameRecord = function (gameID, winner, loser, callback)
     })
   })
   this.findById(loser, function (err, user) {
+    if (err) return callback(err)
     if (!user) {
-      let err = new Error('User not found.')
+      const err = new Error('User not found.')
       err.status = 404
       console.log(err)
       return callback(err)
@@ -145,7 +150,7 @@ UserSchema.statics.updateGameRecord = function (gameID, winner, loser, callback)
   })
 }
 
-//authenticate input against database
+// authenticate input against database
 UserSchema.statics.authenticate = function (username, password, callback) {
   // TODO - CLAIM A TEMP ACCOUNT
   User.findOne({ username: username })
@@ -161,7 +166,7 @@ UserSchema.statics.authenticate = function (username, password, callback) {
     })
 }
 
-let ifIntersect = (haystack, arr) => arr.some(v => haystack.indexOf(v) >= 0)
+const ifIntersect = (haystack, arr) => arr.some(v => haystack.indexOf(v) >= 0)
 
 UserSchema.statics.claimTempAccount = function (fromUserID, toUserID, callback) {
   /*
@@ -178,8 +183,10 @@ UserSchema.statics.claimTempAccount = function (fromUserID, toUserID, callback) 
 
   // COMBINE
   User.findByIdAndRemove(fromUserID, (err, fromUser) => {
+    if (err) return callback(err)
     fromGames = fromUser.gameWin.concat(fromUser.gameLose)
     User.findById(toUserID, (err, toUser) => {
+      if (err) return callback(err)
       if (ifIntersect(fromGames, toUser.gameWin.concat(toUser.gameLose))) {
         return callback(new Error('game_intersected'))
       }
@@ -190,10 +197,12 @@ UserSchema.statics.claimTempAccount = function (fromUserID, toUserID, callback) 
 
       fromGames.forEach(gameID => {
         Game.findOne({ gameID: gameID }, (err, game) => {
-          if (game.playerW.userID.toString() === fromUserID)
+          if (err) return callback(err)
+          if (game.playerW.userID.toString() === fromUserID) {
             game.playerW.userID = toUserID
-          else
+          } else {
             game.playerB.userID = toUserID
+          }
           game.save()
         })
       })
@@ -201,7 +210,6 @@ UserSchema.statics.claimTempAccount = function (fromUserID, toUserID, callback) 
       toUser.save()
     })
   })
-
 }
 
 UserSchema.methods.updateLocation = function (ll, callback) {
@@ -212,12 +220,11 @@ UserSchema.methods.updateLocation = function (ll, callback) {
   })
 }
 
-UserSchema.statics.newUser = function (username, password, birthyear, gender, country,
-                                       showProfile, collectLocation, sessionID, callback) {
+UserSchema.statics.newUser = function (username, password, birthyear, gender, country, showProfile, collectLocation, sessionID, callback) {
   if (username && password) {
     bcrypt.hash(password, 10, (err, hashedPassword) => {
       if (err) return callback(err)
-      let userData = {
+      const userData = {
         isTemporary: false,
         username: username,
         password: hashedPassword,
@@ -248,7 +255,7 @@ UserSchema.statics.newUser = function (username, password, birthyear, gender, co
 }
 
 UserSchema.statics.newTemporaryUser = function (sessionID, callback) {
-  let userData = {
+  const userData = {
     isTemporary: true,
     username: sessionID,
     location: null,
@@ -289,10 +296,12 @@ UserSchema.statics.updateCredential = function (userID, origPassword, newPasswor
     if (err) return callback(err)
     if (!user) return callback(new Error('User not found.'))
     bcrypt.compare(origPassword, user.password, (err, result) => {
+      if (err) return callback(err)
       if (result === true) {
         if (newPassword !== origPassword) {
           if (newPassword === verifyPassword) {
             bcrypt.hash(newPassword, 10, (err, hashedPassword) => {
+              if (err) return callback(err)
               user.password = hashedPassword
               user.save(err => {
                 if (err) return callback(err)
@@ -306,5 +315,5 @@ UserSchema.statics.updateCredential = function (userID, origPassword, newPasswor
   })
 }
 
-let User = mongoose.model('User', UserSchema)
+const User = mongoose.model('User', UserSchema)
 module.exports = User

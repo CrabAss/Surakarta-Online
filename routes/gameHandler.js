@@ -18,18 +18,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
-let express = require('express')
-let router = express.Router({})
-let User = require('../db/user')
-let Game = require('../db/game')
-let bodyParser = require('body-parser')
+const express = require('express')
+const router = express.Router({})
+const User = require('../db/user')
+const Game = require('../db/game')
+const bodyParser = require('body-parser')
 
 router.use(bodyParser.json())
 router.use(bodyParser.urlencoded({ extended: false }))
 
-let reCaptchaData = require('../static_data/recaptcha')
-let libReCaptcha = require('express-recaptcha').Recaptcha
-let reCaptcha = new libReCaptcha(reCaptchaData.PublicKey, reCaptchaData.Secret)
+const reCaptchaData = require('../static_data/recaptcha')
+const ReCaptchaConstructor = require('express-recaptcha').RecaptchaV3
+const reCaptcha = new ReCaptchaConstructor(reCaptchaData.PublicKey, reCaptchaData.Secret)
 
 router.get('/', (req, res, next) => res.redirect('/g/hall'))
 
@@ -62,12 +62,11 @@ router.post('/hall', reCaptcha.middleware.verify, (req, res, next) => {
       return errMsg ? res.send(errMsg) : next(unhandledErr)
     }
   })
-
 })
 
-/*router.get('/hall/:roomID', function (req, res, next) {
+/* router.get('/hall/:roomID', function (req, res, next) {
   return res.render("game/hall");
-});*/
+}) */
 
 router.get('/:gameID', (req, res, next) => {
   Game.findOne({
@@ -77,9 +76,10 @@ router.get('/:gameID', (req, res, next) => {
       { 'playerW.userID': req.session.userID }
     ]
   }, (err, game) => {
+    if (err) next(err)
     if (!game) return res.redirect('/g/hall')
     if (game.status === 'InProgress') return res.render('game/play')
-    res.send('This game is finished!')  // TODO: game playback
+    res.send('This game is finished!') // TODO: game playback
   })
 })
 

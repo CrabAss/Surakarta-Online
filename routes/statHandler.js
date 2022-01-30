@@ -18,11 +18,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
-let express = require('express')
-let router = express.Router()
-let bodyParser = require('body-parser')
-let geoJson = require('geojson')
-let User = require('../db/user')
+const express = require('express')
+const router = express.Router()
+const bodyParser = require('body-parser')
+const geoJson = require('geojson')
+const User = require('../db/user')
 
 router.use(bodyParser.json())
 router.use(bodyParser.urlencoded({ extended: false }))
@@ -30,7 +30,11 @@ router.use(bodyParser.urlencoded({ extended: false }))
 const ifSignedIn = (req, next, ifYes, ifNo) => {
   User.findById(req.session.userID).exec((err, user) => {
     if (err) return next(err)
-    if (user !== null) ifYes() else ifNo()
+    if (user !== null) {
+      ifYes()
+    } else {
+      ifNo()
+    }
   })
 }
 
@@ -43,15 +47,16 @@ router.get('/geojsonp', (req, res, next) => {
     if (req.header('Referer') !== global.DOMAIN_ROOT + 'stat/map') return res.status(403).send('Forbidden')
     User.find({}, (err, users) => {
       if (err) return next(err)
-      let mapArray = []
+      const mapArray = []
       users.forEach(user => {
-        if (user.location)
+        if (user.location) {
           mapArray.push({
             name: user.displayName,
             countWin: user.countWin,
             lat: user.location[0],
             lng: user.location[1]
           })
+        }
       })
       res.setHeader('content-type', 'application/json-p')
       res.send('geo_callback(' + JSON.stringify(geoJson.parse(mapArray, { Point: ['lat', 'lng'] })) + ')')

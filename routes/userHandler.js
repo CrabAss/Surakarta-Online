@@ -18,18 +18,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
-let express = require('express')
-let router = express.Router()
-let bodyParser = require('body-parser')
-let geoip = require('geoip-lite')
+const express = require('express')
+const router = express.Router()
+const bodyParser = require('body-parser')
+const geoip = require('geoip-lite')
 
-let User = require('../db/user')
-let Game = require('../db/game')
-let countryList = require('../static_data/country')
+const User = require('../db/user')
+const Game = require('../db/game')
+const countryList = require('../static_data/country')
 
-let reCaptchaData = require('../static_data/recaptcha')
-let libReCaptcha = require('express-recaptcha').Recaptcha
-let reCaptcha = new libReCaptcha(reCaptchaData.PublicKey, reCaptchaData.Secret)
+const reCaptchaData = require('../static_data/recaptcha')
+const ReCaptchaConstructor = require('express-recaptcha').RecaptchaV3
+const reCaptcha = new ReCaptchaConstructor(reCaptchaData.PublicKey, reCaptchaData.Secret)
 
 router.use(bodyParser.json())
 router.use(bodyParser.urlencoded({ extended: false }))
@@ -37,7 +37,8 @@ router.use(bodyParser.urlencoded({ extended: false }))
 const ifSignedIn = (req, next, ifYes, ifNo) => {
   User.findById(req.session.userID).exec((err, user) => {
     if (err) return next(err)
-    if (user !== null) ifYes() else ifNo()
+    if (user !== null) ifYes()
+    else ifNo()
   })
 }
 
@@ -49,55 +50,66 @@ router.get('/signin', (req, res, next) => {
 
 router.post('/signin', reCaptcha.middleware.verify, (req, res, next) => {
   if (req.session.userID && !req.session.isTemporary) return res.redirect('/')
-  if (req.recaptcha.error) return res.render('user/signin', {
-    reCaptchaKey: reCaptchaData.PublicKey,
-    error: true,
-    errorMsg: 'reCAPTCHA verification failed. Please wait until the module of reCAPTCHA is loaded. '
-  })
+  if (req.recaptcha.error) {
+    return res.render('user/signin', {
+      reCaptchaKey: reCaptchaData.PublicKey,
+      error: true,
+      errorMsg: 'reCAPTCHA verification failed. Please wait until the module of reCAPTCHA is loaded. '
+    })
+  }
 
   if (req.body.username && req.body.password) {
     User.authenticate(req.body.username, req.body.password, (error, user) => {
-      if (error && error.status === 401) return res.render('user/signin', {
-        reCaptchaKey: reCaptchaData.PublicKey,
-        error: true,
-        errorMsg: 'This user does not exist. Please try again. '
-      })
-      if (!user || error) return res.render('user/signin', {
-        reCaptchaKey: reCaptchaData.PublicKey,
-        error: true,
-        errorMsg: 'Username or password is incorrect. Please try again. '
-      })
+      if (error && error.status === 401) {
+        return res.render('user/signin', {
+          reCaptchaKey: reCaptchaData.PublicKey,
+          error: true,
+          errorMsg: 'This user does not exist. Please try again. '
+        })
+      }
+      if (!user || error) {
+        return res.render('user/signin', {
+          reCaptchaKey: reCaptchaData.PublicKey,
+          error: true,
+          errorMsg: 'Username or password is incorrect. Please try again. '
+        })
+      }
 
-      if (req.session.isTemporary) User.claimTempAccount(req.session.userID, user._id.toString(), err => {
-        // if (err && err.message === 'game_intersected');
-      })
+      if (req.session.isTemporary) {
+        User.claimTempAccount(req.session.userID, user._id.toString(), err => {
+          // if (err && err.message === 'game_intersected');
+          if (err) next(err)
+        })
+      }
       req.session.userID = user._id
       req.session.username = user.username
       delete req.session.isTemporary
       user.updateLocation(geoip.lookup(req.headers['cf-connecting-ip'] || req.ip || req.connection.remoteAddress).ll, err => console.error(err))
       return res.redirect('/')
     })
-  } else return res.render('user/signin', {
-    reCaptchaKey: reCaptchaData.PublicKey,
-    error: true,
-    errorMsg: 'All fields are required. Please try again. '
-  })
+  } else {
+    return res.render('user/signin', {
+      reCaptchaKey: reCaptchaData.PublicKey,
+      error: true,
+      errorMsg: 'All fields are required. Please try again. '
+    })
+  }
 })
 
 router.get('/signup', (req, res, next) => {
   ifSignedIn(req, next, () => {
     if (req.session.isTemporary) {
-      let ipCountry = req.headers['cf-ipcountry'] || geoip.lookup(req.ip || req.connection.remoteAddress).country
+      const ipCountry = req.headers['cf-ipcountry'] || geoip.lookup(req.ip || req.connection.remoteAddress).country
       return res.render('user/signup', {
         countryList: countryList,
         countryDefault: ipCountry,
         reCaptchaKey: reCaptchaData.PublicKey
-      })  // TODO - different UX
+      }) // TODO - different UX
     } else {
       return res.redirect('/')
     }
   }, () => {
-    let ipCountry = req.headers['cf-ipcountry'] || geoip.lookup(req.ip || req.connection.remoteAddress).country
+    const ipCountry = req.headers['cf-ipcountry'] || geoip.lookup(req.ip || req.connection.remoteAddress).country
     return res.render('user/signup', {
       countryList: countryList,
       countryDefault: ipCountry,
@@ -149,12 +161,13 @@ router.get('/@:username', (req, res, next) => {
   User.findOne({ username: req.params.username })
     .collation({ locale: 'en', strength: 1 })
     .exec(function (err, user) {
-      if (err)
-        return next(err)
-      if (!user || user.isTemporary || (!user.privacy.showProfile && user._id.toString() !== req.session.userID))
+      if (err) return next(err)
+      if (!user || user.isTemporary || (!user.privacy.showProfile && user._id.toString() !== req.session.userID)) {
         return res.send('User not found!')
-      if (user.username !== req.params.username)
+      }
+      if (user.username !== req.params.username) {
         return res.redirect('/u/@' + user.username)
+      }
 
       Game.aggregate([{
         $match: { 'gameID': { $in: user.gameWin.concat(user.gameLose) } }
@@ -199,6 +212,7 @@ router.get('/@:username', (req, res, next) => {
           }
         }
       }], (err, games) => {
+        if (err) next(err)
         for (let i = 0; i < games.length; i++) {
           games[i].opponent = games[i].opponent.isTemporary ? null : games[i].opponent.username
         }
@@ -210,8 +224,9 @@ router.get('/@:username', (req, res, next) => {
 router.get('/settings', (req, res, next) => {
   User.findById(req.session.userID).exec((err, user) => {
     if (err) return next(err)
-    if (user !== null && !user.isTemporary)
+    if (user !== null && !user.isTemporary) {
       return res.render('user/settings', { user: user, countryList: countryList })
+    }
     return res.redirect('/u/signin')
   })
 })
@@ -228,9 +243,11 @@ router.post('/settings', (req, res, next) => {
       req.body.collectLocation,
       err => {
         if (err) {
-          if (err.message === 'User not found.')
+          if (err.message === 'User not found.') {
             return res.status(400).send(err.message)
-          else return next(err)
+          } else {
+            return next(err)
+          }
         }
         return res.sendStatus(200)
       }
@@ -244,9 +261,11 @@ router.post('/settings', (req, res, next) => {
       err => {
         if (err) {
           const EXPECTED_ERR = ['Current password is incorrect.', 'User not found.', 'Passwords don\'t match.', 'New password should be a different one.']
-          if (EXPECTED_ERR.includes(err.message))
+          if (EXPECTED_ERR.includes(err.message)) {
             return res.status(400).send(err.message)
-          else return next(err)
+          } else {
+            return next(err)
+          }
         }
         return res.sendStatus(200)
       }

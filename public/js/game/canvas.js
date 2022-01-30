@@ -56,8 +56,8 @@ $(document).ready(() => {
     opponent = msg.opponentPlayer
     $('span.username.own').text(own.username)
     $('span.username.opponent').text(opponent.username)
-    if (own.country) $('span.flag-icon.own').addClass('flag-icon-' + own.country.toLowerCase())
-    if (opponent.country) $('span.flag-icon.opponent').addClass('flag-icon-' + opponent.country.toLowerCase())
+    if (own.country) $('span.fi.own').addClass('fi-' + own.country.toLowerCase())
+    if (opponent.country) $('span.fi.opponent').addClass('fi-' + opponent.country.toLowerCase())
   })
   socket.on('update', msg => {
     // gameBoard
@@ -88,7 +88,7 @@ $(document).ready(() => {
 
   $('#surrenderBtn').click(() => socket.emit('surrender', { gameID: gameID }))
 
-  function showAlert (strongMsg, detailMsg) {
+  function showAlert(strongMsg, detailMsg) {
     let alertBox = $('#alert')
     alertBox.find('#strongMsg').text(strongMsg)
     alertBox.find('#detailMsg').text(detailMsg)
@@ -125,7 +125,7 @@ $(document).ready(() => {
     ]
   ]
 
-  function getAllIndexes (arr, val) {
+  function getAllIndexes(arr, val) {
     let indexes = [], i = -1
     while ((i = arr.indexOf(val, i + 1)) !== -1)
       indexes.push(i)
@@ -135,7 +135,7 @@ $(document).ready(() => {
   let checkerboardLayer = new paper.Layer()
   drawCheckerboard()
 
-  function drawCheckerboard () {
+  function drawCheckerboard() {
     let checkerBoard_s = new paper.Path({
       strokeColor: '#FFC107',
       strokeWidth: 8
@@ -235,7 +235,7 @@ $(document).ready(() => {
 
   /* draw & redraw: receiving msg from server */
 
-  function redrawChecker (msg) {
+  function redrawChecker(msg) {
     checkerLayer.activate()
     checkerLayer.removeChildren()
     let curPosition
@@ -326,7 +326,7 @@ $(document).ready(() => {
     if (hitItem) hitItem.position = event.point.subtract(mouseOffset)
   }
 
-  function setCursor (param) {
+  function setCursor(param) {
     // restore cursor status instantly when playable -- TO BE IMPLEMENTED
 
     if (!playable && param !== 'default') param = 'not-allowed'
@@ -409,7 +409,7 @@ $(document).ready(() => {
     hitItem = hitOriginalPos = mouseOffset = null
   }
 
-  function findChecker (point, isOther) {
+  function findChecker(point, isOther) {
     let checker = null
     checkerLayer.children.forEach(element => {
       if (element.checkerPlayer && element.position.equals(point)) {
@@ -424,7 +424,7 @@ $(document).ready(() => {
     return checker
   }
 
-  function getCoord (point) {
+  function getCoord(point) {
     for (let i = 0; i < 6; i++)
       for (let j = 0; j < 6; j++)
         if (board[i][j].equals(point))
@@ -432,7 +432,7 @@ $(document).ready(() => {
     return null
   }
 
-  function getMovePos (point) {
+  function getMovePos(point) {
     let coord = getCoord(point)
     let result = []
     for (let x = coord.x - 1; x < coord.x + 2; x++)
@@ -442,7 +442,7 @@ $(document).ready(() => {
     return result
   }
 
-  function getAttackPos (point) {
+  function getAttackPos(point) {
     const opponent = findChecker(point).checkerPlayer === 'B' ? 'W' : 'B'
     const coord = getCoord(point)
     let result = []

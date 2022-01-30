@@ -18,32 +18,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
-let express = require('express')
-let path = require('path')
-let favicon = require('serve-favicon')
-let logger = require('morgan')
-let session = require('express-session')
-let mongoose = require('mongoose')
-let cookieParser = require('cookie-parser')
-let bodyParser = require('body-parser')
+const express = require('express')
+const path = require('path')
+const favicon = require('serve-favicon')
+const logger = require('morgan')
+const session = require('express-session')
+const mongoose = require('mongoose')
+const cookieParser = require('cookie-parser')
+const bodyParser = require('body-parser')
 
-let index = require('./routes/index')
-let userHandler = require('./routes/userHandler')
-let gameHandler = require('./routes/gameHandler')
-let statHandler = require('./routes/statHandler')
+const index = require('./routes/index')
+const userHandler = require('./routes/userHandler')
+const gameHandler = require('./routes/gameHandler')
+const statHandler = require('./routes/statHandler')
 
-let app = express()
-let MongoStore = connect_mongo(session)
+const app = express()
+const MongoStore = require('connect-mongo')(session)
 
 app.set('trust proxy', 'loopback')
 global.DOMAIN_ROOT = 'https://s.crabass.me/'
 
-//connect to MongoDB
-let db = mongoose.connection
+// connect to MongoDB
+const db = mongoose.connection
 const dbURI = 'mongodb://localhost/surakarta'
 mongoose.connect(dbURI, { auto_reconnect: true })
 
-//handle mongo error
+// handle mongo error
 db.on('connecting', () => console.log('connecting to MongoDB...'))
 db.on('connected', () => console.log('MongoDB connected!'))
 db.on('reconnected', () => console.log('MongoDB reconnected!'))
@@ -57,7 +57,7 @@ db.on('disconnected', () => {
 })
 db.once('open', () => console.log('MongoDB connection opened!'))
 
-//use sessions for tracking logins
+// use sessions for tracking logins
 app.sessionMiddleware = session({
   secret: 'ninja cat',
   resave: true,
@@ -88,14 +88,14 @@ app.use('/stat', statHandler)
 
 // catch 418 and forward to error handler
 app.use('/brew', (req, res, next) => {
-  let err = new Error('Sorry, but I\'m a teapot.')
+  const err = new Error('Sorry, but I\'m a teapot.')
   err.status = 418
   next(err)
 })
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
-  let err = new Error('Not Found')
+  const err = new Error('Not Found')
   err.status = 404
   next(err)
 })

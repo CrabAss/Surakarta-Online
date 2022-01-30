@@ -17,7 +17,7 @@ canvas {
     z-index:9999;
 }
 
-.flag-icon,
-.flag-icon-unk {
+.fi,
+.fi-unk {
     background-image: url("/img/unk-flag.svg");
 }

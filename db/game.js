@@ -18,11 +18,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
-let mongoose = require('mongoose')
-let shortId = require('shortid')
+const mongoose = require('mongoose')
+const shortId = require('shortid')
 const initBoard = 'BBBBBBBBBBBB............WWWWWWWWWWWW'
 
-let GameMoveSchema = new mongoose.Schema({
+const GameMoveSchema = new mongoose.Schema({
   seq: {
     type: Number,
     required: true
@@ -41,7 +41,7 @@ let GameMoveSchema = new mongoose.Schema({
   }
 })
 
-let GamePlayerSchema = new mongoose.Schema({
+const GamePlayerSchema = new mongoose.Schema({
   userID: {
     type: mongoose.Schema.Types.ObjectId,
     required: true
@@ -63,7 +63,7 @@ let GamePlayerSchema = new mongoose.Schema({
   }
 })
 
-let GameSchema = new mongoose.Schema({
+const GameSchema = new mongoose.Schema({
   gameID: {
     type: String,
     unique: true,
@@ -150,15 +150,17 @@ const reverse = s => s.split('').reverse().join('') // reverse a string
 
 const getAllIndexes = (arr, val) => {
   // get all indexes of a certain value in a given array
-  let indexes = [], i = -1
-  while ((i = arr.indexOf(val, i + 1)) !== -1)
+  const indexes = []
+  let i = -1
+  while ((i = arr.indexOf(val, i + 1)) !== -1) {
     indexes.push(i)
+  }
   return indexes
 }
 
 GameSchema.methods.moveOnBoard = function (oldPos, newPos, timeUsed, callback) {
   // move the checker on the board
-  let boardArray = this.currentBoard.split('')
+  const boardArray = this.currentBoard.split('')
   boardArray[newPos] = this.getCurrentPlayer()
   boardArray[oldPos] = '.'
   this.currentBoard = boardArray.join('')
@@ -199,8 +201,9 @@ GameSchema.methods.getCurrentPlayerID = function () {
 }
 
 GameSchema.methods.getMovePos = function (curPos) {
-  const x = curPos % 6, y = ~~(curPos / 6)
-  let result = []
+  const x = curPos % 6
+  const y = ~~(curPos / 6)
+  const result = []
   for (let i = x - 1; i < x + 2; i++) {
     for (let j = y - 1; j < y + 2; j++) {
       if (!(i < 0 || i > 5 || j < 0 || j > 5 || (i === x && j === y) || this.currentBoard.charAt(i + j * 6) !== '.')) {
@@ -215,22 +218,23 @@ GameSchema.methods.getAttackPos = function (curPos) {
   const opponent = this.getCurrentPlayer() === 'B' ? 'W' : 'B'
   const currentBoard = this.currentBoard
   // console.log('opponent:', opponent);
-  let result = []
-  for (let routeIndex = 0; routeIndex < 2; routeIndex++) {  // two routes
-    if (attackRoute[routeIndex].includes(curPos)) {  // if checker is on the attackRoute
+  const result = []
+  for (let routeIndex = 0; routeIndex < 2; routeIndex++) { // two routes
+    if (attackRoute[routeIndex].includes(curPos)) { // if checker is on the attackRoute
       const routeStarts = getAllIndexes(attackRoute[routeIndex], curPos)
       routeStarts.forEach(function (routeStart) {
         // console.log('routeStart:', routeStart);
         for (let direction = -1; direction < 2; direction += 2) { // two direction
           let turned = false
-          for (let i = 1; i < attackRoute[routeIndex].length; i++) {  // all positions on the attackRoute except routeStart
+          for (let i = 1; i < attackRoute[routeIndex].length; i++) { // all positions on the attackRoute except routeStart
             const routePosIndex = (routeStart + direction * i + attackRoute[routeIndex].length) % attackRoute[routeIndex].length
             if (attackRoute[routeIndex][routePosIndex] !== -1) {
               // if the position have checker and it belongs to opponent and turned: push to result
               const foundChecker = currentBoard.charAt(attackRoute[routeIndex][routePosIndex])
               if (foundChecker !== '.' && attackRoute[routeIndex][routePosIndex] !== curPos) {
-                if (foundChecker === opponent && turned)
+                if (foundChecker === opponent && turned) {
                   result.push(attackRoute[routeIndex][routePosIndex])
+                }
                 break
               }
             } else {
@@ -247,19 +251,21 @@ GameSchema.methods.getAttackPos = function (curPos) {
 }
 
 GameSchema.methods.moveStep = function (oldPos, newPos, timeUsed, callback) {
-  if (this.status !== 'InProgress')
+  if (this.status !== 'InProgress') {
     return errRejected()
+  }
 
   let gameWinner
   if (this.getCurrentPlayer() === 'B') {
     oldPos = 35 - oldPos
     newPos = 35 - newPos
   }
-  if (this.currentBoard.charAt(oldPos) !== this.getCurrentPlayer()) // waiting player hacks
+  if (this.currentBoard.charAt(oldPos) !== this.getCurrentPlayer()) { // waiting player hacks
     return errRejected()
+  }
 
-  let movePos = this.getMovePos(oldPos)
-  let attackPos = this.getAttackPos(oldPos)
+  const movePos = this.getMovePos(oldPos)
+  const attackPos = this.getAttackPos(oldPos)
   if (movePos.includes(newPos) || attackPos.includes(newPos)) {
     this.moveOnBoard(oldPos, newPos, timeUsed, function (err, winner) {
       if (err) return callback(err)
@@ -278,15 +284,14 @@ GameSchema.methods.moveStep = function (oldPos, newPos, timeUsed, callback) {
   }
 
   function errRejected () {
-    let err = new Error('Move is rejected. ')
+    const err = new Error('Move is rejected. ')
     err.status = 400
     return callback(err)
   }
-
 }
 
 GameSchema.statics.newGame = function (users, callback) {
-  let playerB, playerW, playerFirst
+  let playerB, playerW
   if (Math.random() * 2 >= 1) {
     playerB = users[0]
     playerW = users[1]
@@ -294,7 +299,7 @@ GameSchema.statics.newGame = function (users, callback) {
     playerB = users[1]
     playerW = users[0]
   }
-  playerFirst = Math.random() * 2 >= 1 ? playerB : playerW
+  const playerFirst = Math.random() * 2 >= 1 ? playerB : playerW
   const gameInfo = {
     gameID: shortId.generate(),
     playerB: {
@@ -311,10 +316,11 @@ GameSchema.statics.newGame = function (users, callback) {
 
 GameSchema.methods.surrenderGame = function (sender, callback) {
   this.status = 'Surrendered'
-  if (sender === this.playerB.userID.toString())
+  if (sender === this.playerB.userID.toString()) {
     this.playerW.isWinner = true
-  else
+  } else {
     this.playerB.isWinner = true
+  }
   this.save((err, updatedGame) => err ? callback(err) : callback(null, updatedGame.playerB.isWinner ? 'B' : 'W'))
 }
 
@@ -328,11 +334,11 @@ GameSchema.statics.getInitData = function (gameID, userID, callback) {
   }, (err, game) => {
     if (err) return callback(err)
     if (!game) {
-      let err = new Error('Forbidden')
+      const err = new Error('Forbidden')
       err.status = 403
       return callback(err)
     }
-    let initData = {
+    const initData = {
       playable: game.status === 'InProgress' ? game.getCurrentPlayerID().toString() === userID : false,
       ownColor: game.playerB.userID.toString() === userID ? 'B' : 'W',
       gameBoard: game.playerB.userID.toString() === userID ? reverse(game.currentBoard) : game.currentBoard,
@@ -342,5 +348,5 @@ GameSchema.statics.getInitData = function (gameID, userID, callback) {
   })
 }
 
-let Game = mongoose.model('Game', GameSchema)
+const Game = mongoose.model('Game', GameSchema)
 module.exports = Game
