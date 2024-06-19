@@ -34,6 +34,6 @@
     "pug": "^3.0.2",
     "serve-favicon": "^2.5.0",
     "shortid": "^2.2.16",
-    "socket.io": "^2.4.1"
+    "socket.io": "^2.5.0"
   }
 }
