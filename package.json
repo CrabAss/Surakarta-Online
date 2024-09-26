@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "bcrypt": "^5.0.1",
-    "body-parser": "~1.19.1",
+    "body-parser": "~1.20.3",
     "connect-mongo": "~3.2.0",
     "cookie-parser": "~1.4.6",
     "debug": "^3.2.7",
