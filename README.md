@@ -1,3 +1,5 @@
+
+
 # Surakarta Online
 Realtime game hosting of Surakarta using Node.js. This project is still in beta stage.
 
@@ -49,6 +51,7 @@ Please refer to [Surakarta (game)](https://en.wikipedia.org/wiki/Surakarta_(game
   ```
 * Please replace the API key of [Google Maps](https://developers.google.com/maps/documentation/javascript/tutorial) with your own key in `views/stat/map.pug`.
 * Please replace the value of `global.DOMAIN_ROOT` with your own hostname in `app.js` ([here](/app.js#L39)). This global constant is to prevent the abuse of the private APIs.
+* Run `npm start` to launch the HTTP server.
 
 ## Roadmap of future development
 Please refer to [Roadmap #1](https://github.com/CrabAss/Surakarta-Online/projects/1).
